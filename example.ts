@@ -174,8 +174,8 @@ class Walk implements IEvent { message!: { a: 1 } }
 class Sit implements IEvent { message!: { a: 2} }
 class Die implements IEvent { message!: { a: 3 } }
 
-/** Inject the events from a EventLib's EventContainer ??? */
-@EventLib.Event(Walk, Sit)
+/** Inject the events from an abitrary Mediator ??? */
+@EventLib.Mediate(SomeMediator)
 class Person extends Component<{ sub: typeof Walk|typeof Sit|Walk|Sit, pub: Die }> {
   constructor() {
     super();
@@ -195,5 +195,6 @@ class Person extends Component<{ sub: typeof Walk|typeof Sit|Walk|Sit, pub: Die 
   }
 }
 
+// Should already be subbed to Walk and Sit from the injected mediator
 const person = new Person()
 
