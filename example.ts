@@ -21,6 +21,8 @@ class Component<E extends {
    * 
    * The `EventInterface` object is not accessed, it serves as type constraints
    * 
+   * TODO: infer type so that we can support both sub event shapes
+   * 
    * @example this.sub(EventInterface, (message) => reply)
    */
   sub!: <Es extends E['sub']> (event: Es, cb: (message: Es['message']) => Promise<Es['reply']>) => this
@@ -33,7 +35,9 @@ class Component<E extends {
   pub!: <Es extends E['pub']> (event: Es) => Promise<Es['reply']>
 
 }
-class EventContainer<E extends IEvent> {
+
+/** Shares events between components */
+class Mediator<E extends IEvent> {
   _components!: Component<{ sub: E, pub: E }>;
 
   connect(component: this['_components']) {}
@@ -67,7 +71,8 @@ class HttpServer extends Component<{
 class RestApi extends Component<{
   // Join them together here so that it is a subset instead of superset comparison
   // This can be done better with a helper type during the construction of Component, preferebly using unions so to preserver discrimination in TS
-  sub: PostHttpRequestEvent | GetHttpRequestEvent | typeof GetHttpRequestEvent | typeof PostHttpRequestEvent
+  sub: PostHttpRequestEvent | GetHttpRequestEvent
+  // sub: PostHttpRequestEvent | GetHttpRequestEvent | typeof GetHttpRequestEvent | typeof PostHttpRequestEvent
   pub: HttpResponseEvent
 }> {}
 
@@ -79,24 +84,24 @@ const httpServer = new HttpServer();
 const restApi = new RestApi()
 
 // Failure, only http request events allowed. No components can be connected.
-const httpRequestEvents = new EventContainer<HttpRequestEvent>()
+const httpRequestMediator = new Mediator<HttpRequestEvent>()
 
-httpRequestEvents.connect(httpServer) // FAIL
-httpRequestEvents.connect(restApi) // FAIL
+httpRequestMediator.connect(httpServer) // FAIL
+httpRequestMediator.connect(restApi) // FAIL
 
 // Failure.
 // With a better type inferrence strategy we may make this work, but basic unions will not work for comparisons.
 // May be able to create a type which can discriminate without the inaccuracy of an intersection.
-const getHttpEventResponder = new EventContainer<GetHttpRequestEvent|HttpResponseEvent>()
+const getHttpMediator = new Mediator<GetHttpRequestEvent|HttpResponseEvent>()
 
-getHttpEventResponder.connect(httpServer) // FAIL
-getHttpEventResponder.connect(restApi) // FAIL
+getHttpMediator.connect(httpServer) // FAIL
+getHttpMediator.connect(restApi) // FAIL
 
 // All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
-const httpEvents = new EventContainer<HttpRequestEvent|HttpResponseEvent>()
+const httpMediator = new Mediator<HttpRequestEvent|HttpResponseEvent>()
 
-httpEvents.connect(httpServer) // PASS
-httpEvents.connect(restApi) // PASS
+httpMediator.connect(httpServer) // PASS
+httpMediator.connect(restApi) // PASS
 
 
 void (async () => {
@@ -131,7 +136,7 @@ void (async () => {
    * 
    * - Might just mean we return stream interface instead of a singular result
    */
-  const reply = await httpEvents.pub(fooBarEvent)
+  const reply = await httpMediator.pub(fooBarEvent)
 
   reply.message.body === 'bar'
   reply.message.headers['content-length'] === 3;
@@ -151,7 +156,7 @@ void (async () => {
 // EventContainer from that
 const EventContainerFactory = (
   ...components: Component<{ sub: IEvent, pub: IEvent }>[]
-): EventContainer<typeof components[0]['_pub']> => undefined as any
+): Mediator<typeof components[0]['_pub']> => undefined as any
 
 // Ideally should infer all pub/sub from httpServer and restApi
 const httpEventAlt = EventContainerFactory(httpServer, restApi)
