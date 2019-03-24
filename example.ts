@@ -3,8 +3,13 @@ interface IEvent {
   reply?: unknown
 }
 
+class Event implements IEvent {
+  message: unknown
+  reply?: unknown
+}
+
 class Component<E extends {
-  sub: IEvent;
+  sub: IEvent|typeof Event;
   pub: IEvent;
 }> {
   /** These are defined so the input can be inspected */
@@ -60,8 +65,9 @@ class HttpServer extends Component<{
 }> {}
 
 class RestApi extends Component<{
-  sub: PostHttpRequestEvent | GetHttpRequestEvent // Join them together here so that it is a subset instead of superset comparison
+  // Join them together here so that it is a subset instead of superset comparison
   // This can be done better with a helper type during the construction of Component, preferebly using unions so to preserver discrimination in TS
+  sub: PostHttpRequestEvent | GetHttpRequestEvent | typeof GetHttpRequestEvent | typeof PostHttpRequestEvent
   pub: HttpResponseEvent
 }> {}
 
@@ -112,6 +118,10 @@ void (async () => {
     return responseEvent
   });
 
+  restApi.sub(GetHttpRequestEvent, () => {
+
+  })
+
   const result = await httpEvents.pub(fooBarEvent)
 
   result.message.body === 'bar'
@@ -123,6 +133,9 @@ void (async () => {
 
 
 
+// Alternative container:
+// Alternative container:
+// Alternative container:
 // Alternative container:
 
 // TODO: need a way to auto-extract all of the types from the provided arguments and construct a
@@ -136,3 +149,37 @@ const httpEventAlt = EventContainerFactory(httpServer, restApi)
 
 httpServer._pub
 httpEventAlt._components._pub
+
+
+// Dependency injection?
+// Dependency injection?
+// Dependency injection?
+// Dependency injection?
+
+class Walk implements IEvent { message!: { a: 1 } }
+class Sit implements IEvent { message!: { a: 2} }
+class Die implements IEvent { message!: { a: 3 } }
+
+/** Inject the events from a EventLib's EventContainer ??? */
+@EventLib.Event(Walk, Sit)
+class Person extends Component<{ sub: typeof Walk|typeof Sit|Walk|Sit, pub: Die }> {
+  constructor() {
+    super();
+
+    // Subbing using the event class
+    this.sub(Walk, async (arg) => {
+      arg.a === 2; // Here the `arg` type is `unknown` because we are not correctly infer lambda checking inside .sub()
+      arg.a === 1;
+    });
+
+    this.sub({ message: { a: 3 } }, async () => {})
+
+    this.sub({ message: { a: 2 } }, async (arg) => {
+      arg.a === 2;
+      arg.a === 1;
+    })
+  }
+}
+
+const person = new Person()
+
