@@ -7,10 +7,24 @@ class Component<E extends {
   sub: IEvent;
   pub: IEvent;
 }> {
+  /** These are defined so the input can be inspected */
   _sub!: E['sub']
   _pub!: E['pub']
 
-  sub!: <Es extends E['sub']> (event: Es, cb: (arg: Es['message']) => Promise<Es['reply']>) => this
+  /**
+   * Subscribe to an event from a connected EventContainer.
+   * 
+   * The `EventInterface` object is not accessed, it serves as type constraints
+   * 
+   * @example this.sub(EventInterface, (message) => reply)
+   */
+  sub!: <Es extends E['sub']> (event: Es, cb: (message: Es['message']) => Promise<Es['reply']>) => this
+
+  /**
+   * Publish an event (as an event object) to an attached EventContainer.
+   * 
+   * @example const reply = await this.pub(eventObject)
+   */
   pub!: <Es extends E['pub']> (event: Es) => Promise<Es['reply']>
 
 }
@@ -58,23 +72,25 @@ class HttpResponseEvent implements IEvent {
 const httpServer = new HttpServer();
 const restApi = new RestApi()
 
-// All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
-const httpEvents = new EventContainer<HttpRequestEvent|HttpResponseEvent>()
-
-httpEvents.connect(httpServer) // PASS
-httpEvents.connect(restApi) // PASS
-
 // Failure, only http request events allowed. No components can be connected.
 const httpRequestEvents = new EventContainer<HttpRequestEvent>()
 
 httpRequestEvents.connect(httpServer) // FAIL
 httpRequestEvents.connect(restApi) // FAIL
 
-// Failure. With a better type inferrence strategy we may make this work
+// Failure.
+// With a better type inferrence strategy we may make this work, but basic unions will not work for comparisons.
+// May be able to create a type which can discriminate without the inaccuracy of an intersection.
 const getHttpEventResponder = new EventContainer<GetHttpRequestEvent|HttpResponseEvent>()
 
 getHttpEventResponder.connect(httpServer) // FAIL
 getHttpEventResponder.connect(restApi) // FAIL
+
+// All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
+const httpEvents = new EventContainer<HttpRequestEvent|HttpResponseEvent>()
+
+httpEvents.connect(httpServer) // PASS
+httpEvents.connect(restApi) // PASS
 
 
 void (async () => {
@@ -106,3 +122,17 @@ void (async () => {
 })();
 
 
+
+// Alternative container:
+
+// TODO: need a way to auto-extract all of the types from the provided arguments and construct a
+// EventContainer from that
+const EventContainerFactory = (
+  ...components: Component<{ sub: IEvent, pub: IEvent }>[]
+): EventContainer<typeof components[0]['_pub']> => undefined as any
+
+// Ideally should infer all pub/sub from httpServer and restApi
+const httpEventAlt = EventContainerFactory(httpServer, restApi)
+
+httpServer._pub
+httpEventAlt._components._pub
