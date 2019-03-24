@@ -58,23 +58,23 @@ class HttpResponseEvent implements IEvent {
 const httpServer = new HttpServer();
 const restApi = new RestApi()
 
-// Pass. All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
+// All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
 const httpEvents = new EventContainer<HttpRequestEvent|HttpResponseEvent>()
 
-httpEvents.connect(httpServer)
-httpEvents.connect(restApi)
+httpEvents.connect(httpServer) // PASS
+httpEvents.connect(restApi) // PASS
 
 // Failure, only http request events allowed. No components can be connected.
 const httpRequestEvents = new EventContainer<HttpRequestEvent>()
 
-httpRequestEvents.connect(httpServer)
-httpRequestEvents.connect(restApi)
+httpRequestEvents.connect(httpServer) // FAIL
+httpRequestEvents.connect(restApi) // FAIL
 
 // Failure. With a better type inferrence strategy we may make this work
 const getHttpEventResponder = new EventContainer<GetHttpRequestEvent|HttpResponseEvent>()
 
-getHttpEventResponder.connect(httpServer)
-getHttpEventResponder.connect(restApi)
+getHttpEventResponder.connect(httpServer) // FAIL
+getHttpEventResponder.connect(restApi) // FAIL
 
 
 void (async () => {
