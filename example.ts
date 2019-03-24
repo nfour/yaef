@@ -109,6 +109,7 @@ void (async () => {
     reply: responseEvent
   } as const
   
+  /** Using an exactly typed object literal as the sub symbol */
   restApi.sub(fooBarEvent, async ({ method, resource }) => {
     const isGet: typeof method = 'GET'
     const isFooxx: typeof resource = '/fooxx'
@@ -118,8 +119,9 @@ void (async () => {
     return responseEvent
   });
 
-  restApi.sub(GetHttpRequestEvent, () => {
-
+  /** Using a event class as the subscription symbol */
+  restApi.sub(GetHttpRequestEvent, async (arg) => {
+    arg.asdsa // Here the `arg` type is `unknown` because we are not correctly infer lambda checking inside .sub()
   })
 
   const result = await httpEvents.pub(fooBarEvent)
