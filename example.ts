@@ -124,13 +124,20 @@ void (async () => {
     arg.asdsa // Here the `arg` type is `unknown` because we are not correctly infer lambda checking inside .sub()
   })
 
-  const result = await httpEvents.pub(fooBarEvent)
+  /** Await the reply here */
+  /**
+   * Not sure if this is good. May be better to ditch reply's as its not clear
+   * how the logic would follow when multiple events attempt to reply
+   * 
+   * - Might just mean we return stream interface instead of a singular result
+   */
+  const reply = await httpEvents.pub(fooBarEvent)
 
-  result.message.body === 'bar'
-  result.message.headers['content-length'] === 3;
+  reply.message.body === 'bar'
+  reply.message.headers['content-length'] === 3;
 
-  result.message.body === 'bars';
-  result.message.headers['content-length'] === 4;
+  reply.message.body === 'bars';
+  reply.message.headers['content-length'] === 4;
 })();
 
 
