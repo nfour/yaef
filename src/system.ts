@@ -6,16 +6,21 @@ export interface IComponentEvents {
   publications: IEvent;
 }
 
-export type RefineEventInput<E extends IComponentEvents> = (
+export interface IInputComponentEvents {
+  observations: IEvent[];
+  publications: IEvent[];
+}
+
+export type RefineEventInput<E extends IInputComponentEvents> = (
   {
     observations: E['observations'][number];
     publications: E['publications'][number];
   }
 );
 
-export type AnonComponent<Events extends IComponentEvents> = (mediator: IMediator<RefineEventInput<Events>>) => void;
+export type AnonComponent<Events extends IComponentEvents> = (mediator: IMediator<Events>) => void;
 
-export interface IComponent<Events extends IComponentEvents> {
+export interface IComponent<Events extends IInputComponentEvents> {
   readonly name?: string;
   // configuration: Configuration; ???
 
@@ -25,7 +30,7 @@ export interface IComponent<Events extends IComponentEvents> {
   publications: Events['publications'];
 }
 
-export function Component<E extends IComponentEvents> (
+export function Component<E extends IInputComponentEvents> (
   eventInput: E,
   cb: (mediator: IMediator<RefineEventInput<E>>) => void): IComponent<E> {
   // ...
