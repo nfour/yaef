@@ -1,50 +1,31 @@
 
-export class Component<E extends {
-  sub: IEvent;
-  pub: IEvent;
-}> {
-  /** These are defined so the input can be inspected */
-  _sub!: E['sub']
-  _pub!: E['pub']
+export interface IObservations {
+  observations: IEvent;
+  publications: IEvent;
+}
+export type AnonComponent<E extends IObservations> = (mediator: Mediator<E>) => void
 
-  /**
-   * Subscribe to an event from a connected Mediator.
-   * 
-   * The `EventInterface` object is not accessed, it serves as type constraints
-   * 
-   * TODO: infer type so that we can support both sub event shapes
-   * 
-   * @example this.sub(EventInterface, (message) => reply)
-   */
-  sub: <Es extends E['sub']> (event: Es, cb: (message: Es['message']) => Promise<Es['reply']>) => this = () => {
-    return {} as any
-  }
-
-  /**
-   * Publish an event (as an event object) to an attached Mediator.
-   * 
-   * @example const reply = await this.pub(eventObject)
-   */
-  pub: <Es extends E['pub']> (event: Es) => Promise<Es['reply']> = () => {
-    return {} as any
-  }
+export interface IComponent<E extends IObservations> {
+  (mediator: Mediator<E>): void
+  
+  observations: E['observations']
+  publications: E['publications']
 }
 
-export class Mediator<E extends IEvent> {
-  _components!: Component<{ sub: E, pub: E }>;
+export function Component<E extends IObservations> (pubsub: E, cb: (mediator: Mediator<E>) => void) {}
 
-  connect(component: this['_components']) {}
-  sub!: <Es extends E> (event: Es, cb: (arg: Es['message']) => Promise<Es['reply']>) => this
-  pub!: <Es extends E> (event: Es) => Promise<Es['reply']>
+export type IEventReturn<E extends IEvent> = E // TODO: stream
+
+export class Mediator<E extends IObservations> {
+  _events!: E;
+
+  observe!: <Es extends this['_events']['observations']> (event: Es, cb: (event: Es) => any) => IEventReturn<Es>
+  publish!: <Es extends this['_events']['publications']> (event: Es) => IEventReturn<Es>
 }
 
-export interface IEvent {
-  message: unknown
-  reply?: unknown
+export class RxJsMediator<E extends IObservations> extends Mediator<E> {
+  
 }
 
-export class Event implements IEvent {
-  message: unknown
-  reply?: unknown
-}
 
+export type IEvent = unknown;

@@ -1,3 +1,5 @@
+import { Component, Mediator } from './src';
+
 interface IEvent {
   message: unknown
   reply?: unknown
@@ -8,42 +10,6 @@ class Event implements IEvent {
   reply?: unknown
 }
 
-class Component<E extends {
-  sub: IEvent|typeof Event;
-  pub: IEvent;
-}> {
-  /** These are defined so the input can be inspected */
-  _sub!: E['sub']
-  _pub!: E['pub']
-
-  /**
-   * Subscribe to an event from a connected Mediator.
-   * 
-   * The `EventInterface` object is not accessed, it serves as type constraints
-   * 
-   * TODO: infer type so that we can support both sub event shapes
-   * 
-   * @example this.sub(EventInterface, (message) => reply)
-   */
-  sub!: <Es extends E['sub']> (event: Es, cb: (message: Es['message']) => Promise<Es['reply']>) => this
-
-  /**
-   * Publish an event (as an event object) to an attached Mediator.
-   * 
-   * @example const reply = await this.pub(eventObject)
-   */
-  pub!: <Es extends E['pub']> (event: Es) => Promise<Es['reply']>
-
-}
-
-/** Shares events between components */
-class Mediator<E extends IEvent> {
-  _components!: Component<{ sub: E, pub: E }>;
-
-  connect(component: this['_components']) {}
-  sub!: <Es extends E> (event: Es, cb: (arg: Es['message']) => Promise<Es['reply']>) => this
-  pub!: <Es extends E> (event: Es) => Promise<Es['reply']>
-}
 
 class HttpRequestEvent implements IEvent {
   message!: { method: string, resource: string }
@@ -64,17 +30,23 @@ class GetHttpRequestEvent implements HttpRequestEvent {
 }
 
 class HttpServer extends Component<{
-  sub: HttpResponseEvent
-  pub: GetHttpRequestEvent | PostHttpRequestEvent,
+  subs: HttpResponseEvent
+  pubs: GetHttpRequestEvent | PostHttpRequestEvent,
 }> {}
+
+HttpServer.prototype._pub;
 
 class RestApi extends Component<{
   // Join them together here so that it is a subset instead of superset comparison
   // This can be done better with a helper type during the construction of Component, preferebly using unions so to preserver discrimination in TS
-  sub: PostHttpRequestEvent | GetHttpRequestEvent
+  subs: PostHttpRequestEvent | GetHttpRequestEvent
   // sub: PostHttpRequestEvent | GetHttpRequestEvent | typeof GetHttpRequestEvent | typeof PostHttpRequestEvent
-  pub: HttpResponseEvent
-}> {}
+  pubs: HttpResponseEvent
+}> {
+  constructor() {
+    
+  }
+}
 
 class HttpResponseEvent implements IEvent {
   message!: { body: string, headers: { 'content-length': number } }
@@ -94,8 +66,8 @@ httpRequestMediator.connect(restApi) // FAIL
 // May be able to create a type which can discriminate without the inaccuracy of an intersection.
 const getHttpMediator = new Mediator<GetHttpRequestEvent|HttpResponseEvent>()
 
-getHttpMediator.connect(httpServer) // FAIL
-getHttpMediator.connect(restApi) // FAIL
+getHttpMediator.connect(httpServer) // FAIL but should PASS
+getHttpMediator.connect(restApi) // FAIL but should PASS
 
 // All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
 const httpMediator = new Mediator<HttpRequestEvent|HttpResponseEvent>()
@@ -136,7 +108,7 @@ void (async () => {
    * 
    * - Might just mean we return stream interface instead of a singular result
    */
-  const reply = await httpMediator.pub(fooBarEvent)
+  const reply = await httpMediator.publish(fooBarEvent)
 
   reply.message.body === 'bar'
   reply.message.headers['content-length'] === 3;
@@ -162,7 +134,7 @@ const MediatorFactory = (
 const httpEventAlt = MediatorFactory(httpServer, restApi)
 
 httpServer._pub
-httpEventAlt._components._pub
+httpEventAlt.subs._pub
 
 
 // Dependency injection?
@@ -171,30 +143,44 @@ httpEventAlt._components._pub
 // Dependency injection?
 
 class Walk implements IEvent { message!: { a: 1 } }
-class Sit implements IEvent { message!: { a: 2} }
+class Sit implements IEvent { message!: { a: 2 } }
 class Die implements IEvent { message!: { a: 3 } }
 
 /** Inject the events from an abitrary Mediator ??? */
-@EventLib.Mediate(SomeMediator)
-class Person extends Component<{ sub: typeof Walk|typeof Sit|Walk|Sit, pub: Die }> {
-  constructor() {
-    super();
-
+class Person extends Component<{ subs: typeof Walk|typeof Sit|Walk|Sit, pubs: Die }> {
+  connect(mediator) {
     // Subbing using the event class
-    this.sub(Walk, async (arg) => {
+    mediator.sub(Walk, async (arg) => {
       arg.a === 2; // Here the `arg` type is `unknown` because we are not correctly infer lambda checking inside .sub()
       arg.a === 1;
     });
+    
 
-    this.sub({ message: { a: 3 } }, async () => {})
 
-    this.sub({ message: { a: 2 } }, async (arg) => {
+    mediator.sub({ message: { a: 3 } }, async () => {})
+
+    mediator.sub(new Walk(), async (arg) => {
       arg.a === 2;
       arg.a === 1;
+
+      mediator.pub(new Die())
     })
   }
 }
 
+
+const mediator = new Mediator();
+
 // Should already be subbed to Walk and Sit from the injected mediator
 const person = new Person()
+const server = new HttpServer()
+
+class HttpServerStartEvent {}
+
+ConnectToMediator(mediator)(person)(server)
+
+mediator.publish(HttpServerStartEvent)
+
+
+
 
