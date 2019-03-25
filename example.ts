@@ -17,7 +17,7 @@ class Component<E extends {
   _pub!: E['pub']
 
   /**
-   * Subscribe to an event from a connected EventContainer.
+   * Subscribe to an event from a connected Mediator.
    * 
    * The `EventInterface` object is not accessed, it serves as type constraints
    * 
@@ -28,7 +28,7 @@ class Component<E extends {
   sub!: <Es extends E['sub']> (event: Es, cb: (message: Es['message']) => Promise<Es['reply']>) => this
 
   /**
-   * Publish an event (as an event object) to an attached EventContainer.
+   * Publish an event (as an event object) to an attached Mediator.
    * 
    * @example const reply = await this.pub(eventObject)
    */
@@ -153,13 +153,13 @@ void (async () => {
 // Alternative container:
 
 // TODO: need a way to auto-extract all of the types from the provided arguments and construct a
-// EventContainer from that
-const EventContainerFactory = (
+// Mediator from that
+const MediatorFactory = (
   ...components: Component<{ sub: IEvent, pub: IEvent }>[]
 ): Mediator<typeof components[0]['_pub']> => undefined as any
 
 // Ideally should infer all pub/sub from httpServer and restApi
-const httpEventAlt = EventContainerFactory(httpServer, restApi)
+const httpEventAlt = MediatorFactory(httpServer, restApi)
 
 httpServer._pub
 httpEventAlt._components._pub
