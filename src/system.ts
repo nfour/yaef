@@ -1,33 +1,33 @@
 
-export interface IEventInput {
-  observations: IEvent[];
-  publications: IEvent[];
+export type IEvent = unknown;
+
+export interface IComponentEvents {
+  observations: IEvent;
+  publications: IEvent;
 }
 
-export type RefineEventInput<E extends IEventInput> = (
+export type RefineEventInput<E extends IComponentEvents> = (
   {
     observations: E['observations'][number];
     publications: E['publications'][number];
   }
 );
 
-export interface IEventDeclaration {
-  observations: IEvent;
-  publications: IEvent;
+export type AnonComponent<Events extends IComponentEvents> = (mediator: IMediator<RefineEventInput<Events>>) => void;
+
+export interface IComponent<Events extends IComponentEvents> {
+  readonly name?: string;
+  // configuration: Configuration; ???
+
+  (mediator: IMediator<RefineEventInput<Events>>): void;
+
+  observations: Events['observations'];
+  publications: Events['publications'];
 }
 
-export type AnonComponent<E extends IEventInput> = (mediator: Mediator<RefineEventInput<E>>) => void;
-
-export interface IComponent<E extends IEventInput> {
-  (mediator: Mediator<RefineEventInput<E>>): void;
-
-  observations: E['observations'];
-  publications: E['publications'];
-}
-
-export function Component<E extends IEventInput> (
+export function Component<E extends IComponentEvents> (
   eventInput: E,
-  cb: (mediator: Mediator<RefineEventInput<E>>) => void): IComponent<E> {
+  cb: (mediator: IMediator<RefineEventInput<E>>) => void): IComponent<E> {
   // ...
 
   return {} as any;
@@ -36,11 +36,14 @@ export function Component<E extends IEventInput> (
 /** TODO: */
 export type IEventReturn<E extends IEvent> = E; // TODO: stream
 
-export class Mediator<E extends IEventDeclaration> {
-  _events!: E;
-
-  observe!: <Es extends this['_events']['observations']> (event: Es, cb?: (event: Es) => any) => IEventReturn<Es>;
-  publish!: <Es extends this['_events']['publications']> (event: Es) => IEventReturn<Es>;
+export interface IMediatedEvents {
+  observations: IEvent;
+  publications: IEvent;
 }
 
-export type IEvent = unknown;
+export interface IMediator<Events extends IMediatedEvents> {
+  _events: Events;
+
+  observe: <Es extends this['_events']['observations']> (event: Es, cb?: (event: Es) => any) => IEventReturn<Es>;
+  publish: <Es extends this['_events']['publications']> (event: Es) => IEventReturn<Es>;
+}
