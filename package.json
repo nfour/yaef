@@ -1,5 +1,13 @@
 {
-  "dependencies": {
-    "@types/node": "^11.11.6"
+  "name": "strict-event-framework-1",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.11.6",
+    "jest": "^24.5.0",
+    "ts-jest": "^24.0.0",
+    "tslint": "^5.14.0",
+    "tslint-config-temando": "^1.6.1"
   }
 }
