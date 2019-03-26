@@ -58,7 +58,7 @@ describe('The interfaces fit together', () => {
     /** Errors here because the type we produce is too strict -
      * required that observations and publications contain ALL events, not just a subset
      */
-    connect(component2, component2);
+    const mediator = connect(component1, component2);
 
   });
 
