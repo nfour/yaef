@@ -30,6 +30,11 @@ describe('The interfaces fit together', () => {
     const eventBarReceived = jest.fn();
     const eventFooReceived = jest.fn();
 
+    /**
+     * TODO: Is this right?
+     * Or should it take no event args and be built from extracting what is
+     * in connected components?
+     */
     const connect = Mediator(Foo, Bar);
 
     const component1 = Component({ observations: [Foo], publications: [Bar] }, (m) => {
@@ -50,6 +55,9 @@ describe('The interfaces fit together', () => {
       });
     });
 
+    /** Errors here because the type we produce is too strict -
+     * required that observations and publications contain ALL events, not just a subset
+     */
     connect(component2, component2);
 
   });
