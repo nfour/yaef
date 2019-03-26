@@ -1,5 +1,7 @@
 import { Component, Mediator } from './src';
 
+// tslint:disable
+
 interface IEvent {
   message: unknown;
   reply?: unknown;

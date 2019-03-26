@@ -1,8 +1,8 @@
-import { IComponent, IMediatedEvents, IMediator } from './system';
+import { IComponent, IMediatedEventInput, IMediator } from './system';
 
 class Boot { static version: 1; }
 
-export interface Thingo<E extends IMediatedEvents = { observations: [Boot], publications: [Boot] }> { // Defining a default that pulls in Boot?
+export interface Thingo<E extends IMediatedEventInput = { observations: [Boot], publications: [Boot] }> { // Defining a default that pulls in Boot?
   readonly componentRegistry: ComponentRegistry;
   readonly inversify: Inversify.Container; // would be used to component.bind(container | inversify)
   readonly mediator: IMediator<E>;
@@ -17,7 +17,7 @@ export interface Thingo<E extends IMediatedEvents = { observations: [Boot], publ
 
 export interface ComponentRegistry { // The props could just be on Thingo
   readonly registeredComponents: Map<string | Symbol, IComponent<any>>; // Symbol is probs dumb? ... <any> doesn't work.
-  lookup<E extends IMediatedEvents> (componentName: string): IComponent<E> | undefined; // Have to give E!
+  lookup<E extends IMediatedEventInput> (componentName: string): IComponent<E> | undefined; // Have to give E!
   isRegistered (componentName: string | Symbol | IComponent<any>): boolean;
   // ... Don't need it if I don't store the components though, but doing so helps with debugging and sub containering the IoC etc.
 }
