@@ -6,9 +6,9 @@ export interface IEvents {
   publications: IEvent;
 }
 
-export interface IEventInputs {
-  observations: IEvent[];
-  publications: IEvent[];
+export interface IEventInputs<V extends any = IEvent> {
+  observations: V[];
+  publications: V[];
 }
 
 export interface EventTuplesToUnion<E extends IEventInputs> {
@@ -68,16 +68,30 @@ export interface IMediator<Events extends IEvents> {
   publish: <Es extends this['_events']['publications']> (event: Es) => IEventReturn<Es>;
 }
 
-export type IMediatedEventInput = IEvent[];
-export function Mediator<E extends IMediatedEventInput> (...events: E) {
-  type C = Array<IComponent<{
-    observations: TupleToIntersectionList<E>,
-    publications: TupleToIntersectionList<E>,
-  }>>;
+export function Mediator<E extends IEvent[]> (...events: E) {
+  type Events = TupleToUnionList<typeof events>;
 
-  const fn = (...component: C) => {
+  type C = IComponent<{
+    observations: Events;
+    publications: Events;
+  }>;
+
+  const fn = (...component: C[]) => {
     return fn;
   };
 
   return fn;
+}
+
+type ExtractSameComponents<C extends Array<IComponent<any>>> = (
+  TupleToIntersectionList<C>
+);
+
+/** */
+export function Connector () {
+  function connect <C extends IComponent<any>> (...component: ExtractSameComponents<C[]>) {
+    return connect;
+  }
+
+  return connect;
 }

@@ -1,4 +1,4 @@
-import { Component, Mediator } from '../system';
+import { Component, Connector, Mediator } from '../system';
 
 // tslint:disable: no-unused-expression
 
@@ -35,7 +35,7 @@ describe('The interfaces fit together', () => {
      * Or should it take no event args and be built from extracting what is
      * in connected components?
      */
-    const connect = Mediator(Foo, Bar);
+    const mediate = Mediator(Foo, Bar);
 
     const component1 = Component({ observations: [Foo], publications: [Bar] }, (m) => {
       m.observe(Foo, (args) => {
@@ -58,7 +58,9 @@ describe('The interfaces fit together', () => {
     /** Errors here because the type we produce is too strict -
      * required that observations and publications contain ALL events, not just a subset
      */
-    connect(component2, component2);
+    mediate(component2, component2);
+
+    const connect = Connector()(component1, component2);
 
   });
 
