@@ -1,8 +1,8 @@
-import { IComponent, IMediatedEventInput, IMediator } from './system';
+import { IComponent, IMediatedEventInput, IMediator, Mediator } from './system';
 
 class Boot { static version: 1; }
 
-export interface Thingo<E extends IMediatedEventInput = { observations: [Boot], publications: [Boot] }> { // Defining a default that pulls in Boot?
+export interface Thingo<E extends IMediatedEvents = { observations: [Boot], publications: [Boot] }> { // Defining a default that pulls in Boot?
   readonly componentRegistry: ComponentRegistry;
   readonly inversify: Inversify.Container; // would be used to component.bind(container | inversify)
   readonly mediator: IMediator<E>;
@@ -22,7 +22,15 @@ export interface ComponentRegistry { // The props could just be on Thingo
   // ... Don't need it if I don't store the components though, but doing so helps with debugging and sub containering the IoC etc.
 }
 
-let my = new Thingo(new InversifyImpl(), new Mediator);
+let my = new Thingo(new InversifyImpl());
+
+
+const mediator /* or Thingo */ = connect(component1) => Mediator with component1 pubs/subs;
+                        (component2) => Mediator with component2 pubs/subs;
+                        (component3) => Mediator with component3 pubs/subs;
+
+mediator.pub(Component3Event, () => {});
+
 use(my, my.createComponent(WhateverComp));
 my.use(CreateComponent(app.mediator, ExampleComp));
 my = use(my, my.CreateComponent(PleaseHelpComp));
@@ -40,3 +48,4 @@ my.componentRegistry.isRegistered(BottleComp.symbol);
 my.componentRegistry.isRegistered(rofl);
 
 if (my.example) { } // ... if components are probs...
+
