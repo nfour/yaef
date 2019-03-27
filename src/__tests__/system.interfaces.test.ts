@@ -24,7 +24,7 @@ describe('The interfaces fit together', () => {
     expect(component.publications).toEqual([Bar]);
   });
 
-  test.skip('Mediated Components', async () => {
+  test('Mediated Components', async () => {
     const eventBarReceived = jest.fn();
     const eventFooReceived = jest.fn();
 
@@ -36,7 +36,7 @@ describe('The interfaces fit together', () => {
 
         eventFooReceived();
 
-        m.publish({ b: 3 } as any);
+        m.publish(Bar);
       });
     });
 
