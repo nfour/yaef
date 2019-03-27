@@ -111,6 +111,7 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: {
     // Eh?
     add () { /** */ },
     // TODO: if anything tries to .publish before this is called, they should get rekt
+    // Or it should be buffered, like in `reaco`
     initialize () {
       components.forEach((component) => component(mediator));
       return mediator;
