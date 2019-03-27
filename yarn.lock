@@ -309,6 +309,11 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/bluebird@^3.5.26":
+  version "3.5.26"
+  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.26.tgz#a38c438ae84fa02431d6892edf86e46edcbca291"
+  integrity sha512-aj2mrBLn5ky0GmAg6IPXrQjnN0iB/ulozuJ+oZdrHRAzRbXjGmu4UXsNCjFvPbSaaPZmniocdOzsM392qLOlmQ==
+
 "@types/istanbul-lib-coverage@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-1.1.0.tgz#2cc2ca41051498382b43157c8227fea60363f94a"
@@ -587,6 +592,11 @@ bcrypt-pbkdf@^1.0.0:
   integrity sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
   dependencies:
     tweetnacl "^0.14.3"
+
+bluebird@^3.5.3:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.3.tgz#7d01c6f9616c9a51ab0f8c549a79dfe6ec33efa7"
+  integrity sha512-/qKPUQlaW1OyR51WeCPBvRnAlnZFUJkCSG5HzGnuIqhgyJtF+T94lFnn33eiazjRm2LAHVy2guNnaq48X9SJuw==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -3336,6 +3346,11 @@ type-check@~0.3.2:
   integrity sha1-WITKtRLPHTVeP7eE8wgEsrUg23I=
   dependencies:
     prelude-ls "~1.1.2"
+
+typescript@^3.4.0-rc:
+  version "3.4.0-rc"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.0-rc.tgz#bc4026c3c517a30fa514b896f2684c6ba92caadb"
+  integrity sha512-wtm2GwuV0Yy2zvmpFaMDtWHnRbzfERi9FLpL+K+JqGkHoclgEQ6TmD1AMxMIjs80NWRIq0Xp1veQyuZbGsUYsg==
 
 uglify-js@^3.1.4:
   version "3.5.2"

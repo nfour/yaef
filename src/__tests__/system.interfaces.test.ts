@@ -1,22 +1,20 @@
-import { Component, Connector, Mediator } from '../system';
+import { Component, ComponentMediator } from '../system';
 
 // tslint:disable: no-unused-expression
 
 describe('The interfaces fit together', () => {
   // class Foo { static a: 1; }
-  const Foo = { a: 1 } as const;
-  const Bar = { b: 3 } as const;
+  const Foo = { name: 'Foo', a: 1, x: 1 as number } as const;
+  class Bar { static b: 3; }
 
   test('Component', async () => {
-
-    expect(Foo.constructor.name).toBe('Foo');
+    expect(Bar.name).toBe('Bar');
 
     const component = Component({ observations: [Foo], publications: [Bar] }, (m) => {
-      m.observe(Foo);
       m.observe(Foo, (args) => {
         args.a === 1;
 
-        m.publish({ b: 3 });
+        m.publish(Bar, { b: 3 } as any);
       });
     });
 
@@ -26,16 +24,9 @@ describe('The interfaces fit together', () => {
     expect(component.publications).toEqual([Bar]);
   });
 
-  test('Mediated Components', async () => {
+  test.skip('Mediated Components', async () => {
     const eventBarReceived = jest.fn();
     const eventFooReceived = jest.fn();
-
-    /**
-     * TODO: Is this right?
-     * Or should it take no event args and be built from extracting what is
-     * in connected components?
-     */
-    const mediate = Mediator(Foo, Bar);
 
     const component1 = Component({ observations: [Foo], publications: [Bar] }, (m) => {
       m.observe(Foo, (args) => {
@@ -45,7 +36,7 @@ describe('The interfaces fit together', () => {
 
         eventFooReceived();
 
-        m.publish({ b: 3 });
+        m.publish({ b: 3 } as any);
       });
     });
 
@@ -55,12 +46,11 @@ describe('The interfaces fit together', () => {
       });
     });
 
-    /** Errors here because the type we produce is too strict -
-     * required that observations and publications contain ALL events, not just a subset
-     */
-    mediate(component2, component2);
+    const componentMediator = ComponentMediator({ components: [component1, component2] });
 
-    const connect = Connector()(component1, component2);
+    const mediator = componentMediator.initialize();
+
+    mediator.publish(Foo, { a: 1, x: 999 } as any);
 
   });
 

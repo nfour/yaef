@@ -1,4 +1,4 @@
-import { Component, Mediator } from './src';
+import { Component, ComponentMediator } from './src';
 
 // tslint:disable
 
@@ -57,7 +57,7 @@ const httpServer = new HttpServer();
 const restApi = new RestApi();
 
 // Failure, only http request events allowed. No components can be connected.
-const httpRequestMediator = new Mediator<HttpRequestEvent>();
+const httpRequestMediator = new ComponentMediator<HttpRequestEvent>();
 
 httpRequestMediator.connect(httpServer); // FAIL
 httpRequestMediator.connect(restApi); // FAIL
@@ -65,13 +65,13 @@ httpRequestMediator.connect(restApi); // FAIL
 // Failure.
 // With a better type inferrence strategy we may make this work, but basic unions will not work for comparisons.
 // May be able to create a type which can discriminate without the inaccuracy of an intersection.
-const getHttpMediator = new Mediator<GetHttpRequestEvent | HttpResponseEvent>();
+const getHttpMediator = new ComponentMediator<GetHttpRequestEvent | HttpResponseEvent>();
 
 getHttpMediator.connect(httpServer); // FAIL but should PASS
 getHttpMediator.connect(restApi); // FAIL but should PASS
 
 // All events for each component are subset of either  HttpRequestEvent or HttpResponseEvent
-const httpMediator = new Mediator<HttpRequestEvent | HttpResponseEvent>();
+const httpMediator = new ComponentMediator<HttpRequestEvent | HttpResponseEvent>();
 
 httpMediator.connect(httpServer); // PASS
 httpMediator.connect(restApi); // PASS
@@ -163,7 +163,7 @@ class Person extends Component<{ subs: typeof Walk | typeof Sit | Walk | Sit, pu
   }
 }
 
-const mediator = new Mediator();
+const mediator = new ComponentMediator();
 
 // Should already be subbed to Walk and Sit from the injected mediator
 const person = new Person();

@@ -1,5 +1,8 @@
+import { ErrorFromCallPoint } from './lib';
 
-export type IEvent = unknown;
+export interface IEvent { readonly name?: string; [k: string]: unknown; }
+
+export type IEventShapes = UnionToIntersection<IEvent>;
 
 export interface IEvents {
   observations: IEvent;
@@ -11,39 +14,13 @@ export interface IEventInputs<V extends any = IEvent> {
   publications: V[];
 }
 
-export interface EventTuplesToUnion<E extends IEventInputs> {
-  observations: E['observations'][number];
-  publications: E['publications'][number];
-}
-
-export type TupleToUnion<T extends unknown[]> = T[number];
-export type TupleToUnionList<T extends unknown[]> = Array<T[number]>;
-export type TupleToPartialIntersection<T extends unknown[]> = UnionToPartialIntersection<TupleToUnion<T>>;
-export type TupleToIntersection<T extends unknown[]> = UnionToIntersection<TupleToUnion<T>>;
-export type TupleToIntersectionList<T extends unknown[]> = Array<TupleToIntersection<T>>;
-export type TupleToPartialIntersectionList<T extends unknown[]> = Array<TupleToPartialIntersection<T>>;
-export type UnionToIntersection<U> = (
-  (U extends any
-    ? (k: U) => void
-    : never) extends (k: infer I) => void
-      ? I
-      : never
-);
-export type UnionToPartialIntersection<U> = (
-  (U extends any
-    ? (k: U) => void
-    : never) extends (k: infer I) => void
-      ? Partial<I>
-      : never
-);
-
-export type AnonComponent<Events extends IEvents> = (mediator: IMediator<Events>) => void;
+export type AnonComponent<Events extends IEvents> = (mediator: SimpleMediator<Events>) => void;
 
 export interface IComponent<Events extends IEventInputs> {
   readonly name?: string;
   // configuration: Configuration; ???
 
-  (mediator: IMediator<EventTuplesToUnion<Events>>): void;
+  (mediator: SimpleMediator<EventTuplesToUnion<Events>>): void;
 
   observations: Events['observations'];
   publications: Events['publications'];
@@ -51,47 +28,109 @@ export interface IComponent<Events extends IEventInputs> {
 
 export function Component<E extends IEventInputs> (
   eventInput: E,
-  callback: (mediator: IMediator<EventTuplesToUnion<E>>) => void,
+  callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
-  // ...
+  const component = <IComponent<E>> callback;
 
-  return {} as any;
+  component.observations = eventInput.observations;
+  component.publications = eventInput.publications;
+
+  return component;
 }
-
-/** TODO: */
-export type IEventReturn<E extends IEvent> = E; // TODO: stream
 
 export interface IMediator<Events extends IEvents> {
   _events: Events;
 
-  observe: <Es extends this['_events']['observations']> (event: Es, cb?: (event: Es) => any) => IEventReturn<Es>;
-  publish: <Es extends this['_events']['publications']> (event: Es) => IEventReturn<Es>;
+  observe <Es extends this['_events']['observations']> (event: Es, ...args: any[]): any;
+  publish <Es extends this['_events']['publications']> (event: Es, payload: unknown): any;
 }
 
-export function Mediator<E extends IEvent[]> (...events: E) {
-  type Events = TupleToUnionList<typeof events>;
+/** This is gay */
+const primitiveNames = ['Object', 'Array', 'String', 'Number'];
 
-  type C = IComponent<{
-    observations: Events;
-    publications: Events;
-  }>;
+const CheckMediatorEventName = (from: { name: string }) => (name?: string) => {
+  if (!name || primitiveNames.includes(name)) {
+    throw ErrorFromCallPoint({ fromStackPosition: 3 })(
+      `[${from.name}] Cannot observe event, missing unique 'name' property. Got value: ${name}`,
+    );
+  }
+};
 
-  const fn = (...component: C[]) => {
-    return fn;
-  };
+const getNameFromEvent = (event: IEventShapes) => event.name || event.constructor.name;
 
-  return fn;
-}
+export class SimpleMediator<Events extends IEvents> implements IMediator<Events> {
+  _events!: Events;
 
-type ExtractSameComponents<C extends Array<IComponent<any>>> = (
-  TupleToIntersectionList<C>
-);
+  private observers: Map<any, Array<{ event: any, callback: (event: any) => any }>> = new Map();
 
-/** */
-export function Connector () {
-  function connect <C extends IComponent<any>> (...component: ExtractSameComponents<C[]>) {
-    return connect;
+  observe <Es extends this['_events']['observations']> (event: Es, callback: (event: Es) => any) {
+    const name = event.name;
+
+    CheckMediatorEventName(this.constructor)(name);
+
+    /** Set default if not defined */
+    if (!this.observers.has(name)) { this.observers.set(name, []); }
+
+    const observers = this.observers.get(name)!;
+
+    this.observers.set(name, [...observers, { event, callback }]);
   }
 
-  return connect;
+  publish<Es extends this['_events']['publications']> (
+    event: Es,
+    /** This name thing exists because we are being cheeky with props */
+    payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
+  ) {
+    const name = getNameFromEvent(event as IEventShapes);
+
+    CheckMediatorEventName(this.constructor)(name);
+
+    if (!this.observers.has(name)) {
+      return;
+    }
+
+    const observers = this.observers.get(name)!;
+
+    return observers.map(({ callback }) => {
+      return callback(payload || event);
+    });
+  }
+}
+
+/**
+ * TODO: Support `Mediator` property, so one can construct from arbitrary IMediator conformant interfaces
+ */
+export function ComponentMediator<C extends IComponent<any>> ({ components }: {
+  components: C[],
+}) {
+  /** This should be part of the input as well */
+  const mediator = new SimpleMediator<MergeComponentEvents<C>>();
+
+  return {
+    mediator,
+    // Eh?
+    add () { /** */ },
+    // TODO: if anything tries to .publish before this is called, they should get rekt
+    initialize () {
+      components.forEach((component) => component(mediator));
+      return mediator;
+    },
+  };
+}
+
+interface MergeComponentEvents<C extends IComponent<any>> {
+  observations: C['observations'][number];
+  publications: C['observations'][number];
+}
+
+/** */
+export function Kernel () { /** */}
+
+export function Registry () { /** */}
+
+// Helpers. Move to ./types.ts later if any are necessary
+
+export interface EventTuplesToUnion<E extends IEventInputs> {
+  observations: E['observations'][number];
+  publications: E['publications'][number];
 }
