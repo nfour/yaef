@@ -5,6 +5,7 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 import { ComponentMediator, IComponent } from '../system';
 import { IMessages } from './types';
 
+/** TODO: make this use a debug module. */
 // tslint:disable-next-line: no-console
 const log = (txt: string) => console.log(`... Worker ... ${txt}`);
 

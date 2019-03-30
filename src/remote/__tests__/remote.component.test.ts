@@ -15,7 +15,7 @@ describe('Running components in a worker process', () => {
     for (const c of containers) { await c.kill(); }
   });
 
-  test('The component lifecycle works with local components', async () => {
+  test('This tests lifecycle works with regular components', async () => {
     const container = ComponentMediator({ components: [apple, banana] });
 
     containers.push(container);
@@ -33,7 +33,7 @@ describe('Running components in a worker process', () => {
     expect(eventCCalled).toBeCalledTimes(1);
   });
 
-  test('Can send and receive an event in a worker component', async () => {
+  test('Can send and receive remote events', async () => {
     const remoteBananaComponent = RemoteModuleComponent(bananaEvents, {
       module: {
         path: bananaComponentPath,
@@ -59,4 +59,9 @@ describe('Running components in a worker process', () => {
 
     expect(eventCCalled).toBeCalledTimes(1);
   });
+
+  test('+1 advanced positive scenario');
+  test('Infinite loops with recursive events');
+  test('Errors when recursive events are defined');
+  test('Can load balance between multiple workers');
 });
