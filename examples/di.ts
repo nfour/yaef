@@ -1,4 +1,4 @@
-import { ComponentMediator, IComponent, IMediatedEventInput, IMediator } from './system';
+import { ComponentMediator, IComponent, IMediatedEventInput, IMediator } from '../src/system';
 
 class Boot { static version: 1; }
 
@@ -24,10 +24,9 @@ export interface ComponentRegistry { // The props could just be on Thingo
 
 let my = new Thingo(new InversifyImpl());
 
-
-const mediator /* or Thingo */ = connect(component1) => ComponentMediator with component1 pubs/subs;
-                        (component2) => ComponentMediator with component2 pubs/subs;
-                        (component3) => ComponentMediator with component3 pubs/subs;
+const mediator /* or Thingo */ = connect(component1); => ComponentMediator; with component1 pubs / subs;
+(component2) => ComponentMediator; with component2 pubs / subs;
+(component3) => ComponentMediator; with component3 pubs / subs;
 
 mediator.pub(Component3Event, () => {});
 

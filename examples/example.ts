@@ -1,4 +1,4 @@
-import { Component, ComponentMediator } from './src';
+import { Component, ComponentMediator } from '../src';
 
 // tslint:disable
 

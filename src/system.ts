@@ -1,3 +1,7 @@
+import './types';
+
+import { map } from 'bluebird';
+
 import { ErrorFromCallPoint } from './lib';
 
 export interface IEvent { readonly name?: string; [k: string]: unknown; }
@@ -16,24 +20,29 @@ export interface IEventInputs<V extends any = IEvent> {
 
 export type AnonComponent<Events extends IEvents> = (mediator: SimpleMediator<Events>) => void;
 
-export interface IComponent<Events extends IEventInputs> {
-  readonly name?: string;
+export interface IComponent<Events extends IEventInputs, M = SimpleMediator<EventTuplesToUnion<Events>>> {
   // configuration: Configuration; ???
 
-  (mediator: SimpleMediator<EventTuplesToUnion<Events>>): void;
+  (mediator: M): void | Promise<void>;
+  readonly name?: string;
 
   observations: Events['observations'];
   publications: Events['publications'];
+
+  kill (): void | Promise<void>;
 }
 
 export function Component<E extends IEventInputs> (
   eventInput: E,
   callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
-  const component = <IComponent<E>> callback;
+  const component = <IComponent<E>> ((mediator) => callback(mediator));
 
   component.observations = eventInput.observations;
   component.publications = eventInput.publications;
+
+  /** TODO: Need a way to un-listen */
+  component.kill = () => { /**/ };
 
   return component;
 }
@@ -48,10 +57,10 @@ export interface IMediator<Events extends IEvents> {
 /** This is gay */
 const primitiveNames = ['Object', 'Array', 'String', 'Number'];
 
-const CheckMediatorEventName = (from: { name: string }) => (name?: string) => {
+const CheckMediatorEventName = (from: string) => (name?: string) => {
   if (!name || primitiveNames.includes(name)) {
     throw ErrorFromCallPoint({ fromStackPosition: 3 })(
-      `[${from.name}] Cannot observe event, missing unique 'name' property. Got value: ${name}`,
+      `[${from}] Cannot observe event, missing unique 'name' property. Got value: ${name}`,
     );
   }
 };
@@ -66,7 +75,7 @@ export class SimpleMediator<Events extends IEvents> implements IMediator<Events>
   observe <Es extends this['_events']['observations']> (event: Es, callback: (event: Es) => any) {
     const name = event.name;
 
-    CheckMediatorEventName(this.constructor)(name);
+    CheckMediatorEventName(this.constructor.name)(name);
 
     /** Set default if not defined */
     if (!this.observers.has(name)) { this.observers.set(name, []); }
@@ -83,7 +92,7 @@ export class SimpleMediator<Events extends IEvents> implements IMediator<Events>
   ) {
     const name = getNameFromEvent(event as IEventShapes);
 
-    CheckMediatorEventName(this.constructor)(name);
+    CheckMediatorEventName(this.constructor.name)(name);
 
     if (!this.observers.has(name)) {
       return;
@@ -108,13 +117,21 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: {
 
   return {
     mediator,
+
     // Eh?
     add () { /** */ },
-    // TODO: if anything tries to .publish before this is called, they should get rekt
-    // Or it should be buffered, like in `reaco`
-    initialize () {
-      components.forEach((component) => component(mediator));
+
+    async initialize () {
+      // TODO: if anything tries to .publish before this is called, they should get rekt
+      // Or it should be buffered, like in `reaco`
+
+      await map(components, (component) => component(mediator));
+
       return mediator;
+    },
+
+    async kill () {
+      await map(components, (component) => component.kill());
     },
   };
 }
@@ -123,11 +140,6 @@ interface MergeComponentEvents<C extends IComponent<any>> {
   observations: C['observations'][number];
   publications: C['observations'][number];
 }
-
-/** */
-export function Kernel () { /** */}
-
-export function Registry () { /** */}
 
 // Helpers. Move to ./types.ts later if any are necessary
 

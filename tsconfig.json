@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
+    "incremental": true,
+    "outDir": "build",
     "lib": ["es2018"]
-  }
+  },
+  "exclude": ["examples"]
 }

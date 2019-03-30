@@ -1,4 +1,3 @@
-
 import { Component, ComponentMediator } from '../system';
 
 test('Can observe published events', () => {
@@ -17,7 +16,7 @@ test('Can observe published events', () => {
   expect(xEventReceived).toBeCalledTimes(1);
 });
 
-test('Can mediate events within components', () => {
+test('Can mediate events within components', async () => {
   const Foo = { name: 'Foo', a: 1, x: 9 as number } as const;
   class Bar { static b: 1; }
 
@@ -42,7 +41,7 @@ test('Can mediate events within components', () => {
 
   const componentMediator = ComponentMediator({ components: [component1, component2] });
 
-  const mediator = componentMediator.initialize();
+  const mediator = await componentMediator.initialize();
 
   mediator.publish(Foo, { a: 1, x: 999 });
 
