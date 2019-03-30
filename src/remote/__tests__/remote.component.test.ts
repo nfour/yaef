@@ -1,7 +1,7 @@
 import { delay } from 'bluebird';
 import { resolve } from 'path';
 
-import { ComponentMediator } from '../../system';
+import { ComponentMediator, IMediator } from '../../system';
 import { RemoteModuleComponent } from '../remote';
 import { A, apple, banana, bananaEvents, C } from './fixtures/components';
 
@@ -9,9 +9,18 @@ const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
 
 describe('Running components in a worker process', () => {
+  const containers: Array<ReturnType<typeof ComponentMediator>> = [];
+
+  afterEach(async () => {
+    for (const c of containers) { await c.kill(); }
+  });
+
   test('The component lifecycle works with local components', async () => {
-    const mediator = await ComponentMediator({ components: [apple, banana] })
-      .initialize();
+    const container = ComponentMediator({ components: [apple, banana] });
+
+    containers.push(container);
+
+    const mediator = await container.initialize();
 
     const eventCCalled = jest.fn();
 
@@ -32,8 +41,11 @@ describe('Running components in a worker process', () => {
       },
     });
 
-    const mediator = await ComponentMediator({ components: [apple, remoteBananaComponent] })
-      .initialize();
+    const container = ComponentMediator({ components: [apple, remoteBananaComponent] });
+
+    containers.push(container);
+
+    const mediator = await container.initialize();
 
     const eventCCalled = jest.fn();
 

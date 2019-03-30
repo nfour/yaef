@@ -44,8 +44,8 @@ export function RemoteModuleComponent<E extends IEventInputs> (
   });
 
   const component = <IComponent<E>> (async (mediator) => {
-    component.kill = () => {
-      // TODO: clean up workers!
+    component.kill = async () => {
+      await new Promise((r) => worker.terminate(r));
     };
 
     log('Awaiting component ready...');
