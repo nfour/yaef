@@ -20,6 +20,8 @@ void (async () => {
     });
   });
 
+  parentPort!.removeAllListeners();
+
   log('Port acquired');
 
   const {
@@ -41,6 +43,13 @@ void (async () => {
     if (id !== 'observation') { return; }
 
     mediator.publish(event, payload);
+  });
+
+  port.on('message', ({ id }: IMessages['killMessage']) => {
+    if (id !== 'kill') { return; }
+
+    log('Killing');
+    process.exit(0);
   });
 
   eventInput.publications.forEach((event) => {

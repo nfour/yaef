@@ -9,6 +9,7 @@ export interface IRemoteModuleConfig {
 
 export interface IMessages {
   'readyMessage': { id: 'ready' };
+  'killMessage': { id: 'kill' };
   'portMessage': { id: 'port', port: MessagePort };
   'componentWorkerData': { eventInput: IEventInputs, module: IRemoteModuleConfig['module'] };
   'observationMessage': { id: 'observation', event: IEvent, payload: any };

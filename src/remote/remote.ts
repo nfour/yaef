@@ -45,6 +45,11 @@ export function RemoteModuleComponent<E extends IEventInputs> (
 
   const component = <IComponent<E>> (async (mediator) => {
     component.kill = async () => {
+      await new Promise((r) => {
+        workerPort.postMessage({ id: 'kill' });
+        workerPort.on('close', r);
+      });
+
       await new Promise((r) => worker.terminate(r));
     };
 
