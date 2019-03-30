@@ -1,3 +1,4 @@
+/** TODO: test me */
 export function ErrorFromCallPoint ({ fromStackPosition }: { fromStackPosition: number }) {
   return (message?: string) => {
     const error = new Error(message);
