@@ -43,7 +43,7 @@ describe('Running components in a worker process', () => {
     expect(eventCCalled).toBeCalledTimes(1);
   });
 
-  test('Banana test case can demonstrate high event throughput', async () => {
+  test('Can send many events to and from a remote component', async () => {
     const { mediator } = await prepareRemoteBananaCase();
 
     const eventCCalled = jest.fn();
@@ -59,7 +59,41 @@ describe('Running components in a worker process', () => {
     while (eventCCalled.mock.calls.length < size) { await delay(10); }
 
     expect(eventCCalled).toBeCalledTimes(size);
+  });
 
+  test('Can spawn many remote components and exchange many events', async () => {
+    const spawnSize = 5;
+
+    const start = Date.now();
+
+    const bananas = Array(spawnSize).fill('').map(() => {
+      return RemoteModuleComponent(bananaEvents, {
+        module: { path: bananaComponentPath, member: bananaMember },
+      });
+    });
+
+    const container = ComponentMediator({ components: [apple, ...bananas] });
+
+    containers.push(container);
+
+    const mediator = await container.initialize();
+
+    console.log(`Took ${Date.now() - start}ms to initialize ${spawnSize} workers`);
+
+    const eventCCalled = jest.fn();
+
+    mediator.observe(C, eventCCalled);
+
+    const eventEmitSize = 10;
+    const expectedCallTimes = eventEmitSize * spawnSize;
+
+    await map(Array(eventEmitSize).fill(''), () => mediator.publish(A));
+
+    while (eventCCalled.mock.calls.length < expectedCallTimes) {
+      await delay(10);
+    }
+
+    expect(eventCCalled).toBeCalledTimes(expectedCallTimes);
   });
 
   test('+1 advanced positive scenario');
@@ -84,5 +118,5 @@ describe('Running components in a worker process', () => {
     return { mediator, container, remoteBananaComponent };
   }
 
-  return undefined;
+  return; // Jest is being retarded and needs this atm -_-
 });

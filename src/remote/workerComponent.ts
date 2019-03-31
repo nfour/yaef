@@ -21,6 +21,7 @@ void (async () => {
   });
 
   parentPort!.removeAllListeners();
+  parentPort!.close();
 
   log('Port acquired');
 
