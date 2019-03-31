@@ -1,6 +1,9 @@
 {
   "name": "strict-event-framework-1",
   "private": true,
+  "scripts": {
+    "test": "source ./.env && jest"
+  },
   "dependencies": {
     "@types/bluebird": "^3.5.26",
     "@types/debug": "^4.1.3",
