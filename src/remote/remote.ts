@@ -8,7 +8,7 @@ import { IMessages, IRemoteModuleConfig } from './types';
 
 const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponent.js');
 
-const debug = Debug(`RemoteModuleComponent`);
+const debug = Debug(`RemoteModule`);
 
 export function RemoteModuleComponent<E extends IEventInputs> (
   eventInput: E,

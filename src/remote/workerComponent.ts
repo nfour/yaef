@@ -6,7 +6,7 @@ import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 import { ComponentMediator, IComponent } from '../system';
 import { IMessages } from './types';
 
-const debug = Debug(`Worker ${threadId}`);
+const debug = Debug(`RemoteModule Worker ${threadId}`);
 
 void (async () => {
   debug('Awaiting port...');
