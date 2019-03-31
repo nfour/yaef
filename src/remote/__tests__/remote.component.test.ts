@@ -9,6 +9,7 @@ const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
 
 describe('Running components in a worker process', () => {
+  /** Used to clean up after tests */
   const containers: Array<ReturnType<typeof ComponentMediator>> = [];
 
   afterEach(async () => {
@@ -49,9 +50,9 @@ describe('Running components in a worker process', () => {
 
     mediator.observe(C, eventCCalled);
 
-    // 30x10 == 300x100 == 1.7s, 3000x1000 == 4.5s
-    const concurrency = 10;
-    const size = 30;
+    // 30x10 == 1.6s, 300x100 == 1.7s, 3000x1000 == 4.5s
+    const concurrency = 100;
+    const size = 300;
 
     await map(Array(size).fill(''), () => mediator.publish(A), { concurrency });
 
@@ -82,4 +83,6 @@ describe('Running components in a worker process', () => {
 
     return { mediator, container, remoteBananaComponent };
   }
+
+  return undefined;
 });
