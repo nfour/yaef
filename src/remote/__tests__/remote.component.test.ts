@@ -96,7 +96,7 @@ describe('Running components in a worker process', () => {
     expect(eventCCalled).toBeCalledTimes(expectedCallTimes);
   });
 
-  test('+1 advanced positive scenario');
+  test('Worker wont kill itself, parent should timeout and terminate');
   test('Errors when recursive events are defined');
   test('Infinite loops with recursive events when the checks are disabled');
   test('Can load balance between multiple workers');

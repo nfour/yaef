@@ -1,3 +1,4 @@
+import { delay } from 'bluebird';
 import { resolve } from 'path';
 import { MessageChannel, Worker } from 'worker_threads';
 
@@ -45,17 +46,22 @@ export function RemoteModuleComponent<E extends IEventInputs> (
 
   const component = <IComponent<E>> (async (mediator) => {
     component.kill = async () => {
-      // await new Promise((r) => {
-      //   workerPort.postMessage({ id: 'kill' });
-      //   workerPort.on('close', r);
-      // });
+      /** Make sure after time, terminate */
+      const timedExecution = delay(500).then(() => {
+        workerPort.close();
+        workerParentPort.close();
 
-      worker.removeAllListeners();
-      workerPort.removeAllListeners();
-      workerParentPort.removeAllListeners();
-      workerPort.close();
-      workerParentPort.close();
-      await new Promise((r) => worker.terminate(r));
+        worker.terminate();
+      });
+
+      /** Ask the worker to commit soduku */
+      await new Promise((r) => {
+        workerPort.postMessage({ id: 'kill' });
+        workerPort.on('close', r);
+      });
+
+      // Just making sure.
+      await timedExecution;
     };
 
     log('Awaiting component ready...');
