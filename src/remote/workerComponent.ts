@@ -1,16 +1,15 @@
 import 'ts-node/register';
 
-import { MessagePort, parentPort, workerData } from 'worker_threads';
+import Debug from 'debug';
+import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
 import { ComponentMediator, IComponent } from '../system';
 import { IMessages } from './types';
 
-/** TODO: make this use a debug module. */
-// tslint:disable-next-line: no-console
-const log = (txt: string) => console.log(`... Worker ... ${txt}`);
+const debug = Debug(`Worker ${threadId}`);
 
 void (async () => {
-  log('Awaiting port...');
+  debug('Awaiting port...');
 
   const port: MessagePort = await new Promise((gotPort) => {
     parentPort!.on('message', ({ id, port: portInput }: IMessages['portMessage']) => {
@@ -23,22 +22,22 @@ void (async () => {
   parentPort!.removeAllListeners();
   parentPort!.close();
 
-  log('Port acquired');
+  debug('Port acquired');
 
   const {
     eventInput,
     module: { path, member },
   }: IMessages['componentWorkerData'] = workerData;
 
-  log(`Importing ${path}:${member} ...`);
+  debug(`Importing ${path}:${member} ...`);
 
   const component: IComponent<any> = (await import(path))[member];
 
-  log('Initializing mediator...');
+  debug('Initializing mediator...');
 
   const mediator = await ComponentMediator({ components: [component] }).initialize();
 
-  log('Mediator initialized.');
+  debug('Mediator initialized.');
 
   port.on('message', ({ id, event, payload }: IMessages['observationMessage']) => {
     if (id !== 'observation') { return; }
@@ -49,7 +48,7 @@ void (async () => {
   port.on('message', ({ id }: IMessages['killMessage']) => {
     if (id !== 'kill') { return; }
 
-    log('Killing');
+    debug('Killing');
     process.exit(0);
   });
 
@@ -67,7 +66,7 @@ void (async () => {
   const readyMessage: IMessages['readyMessage'] = { id: 'ready' };
   port.postMessage(readyMessage);
 
-  log('Ready');
-  log(`Observing events: ${eventInput.observations.map(({ name }) => name)}`);
-  log(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
+  debug('Ready');
+  debug(`Observing events: ${eventInput.observations.map(({ name }) => name)}`);
+  debug(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
 })();

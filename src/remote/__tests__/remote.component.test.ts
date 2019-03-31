@@ -14,6 +14,8 @@ describe('Running components in a worker process', () => {
 
   afterEach(async () => {
     for (const c of containers) { await c.kill(); }
+
+    containers.splice(0, containers.length); // Empty
   });
 
   test('This tests lifecycle works with regular components', async () => {
@@ -96,10 +98,10 @@ describe('Running components in a worker process', () => {
     expect(eventCCalled).toBeCalledTimes(expectedCallTimes);
   });
 
-  test('Worker wont kill itself, parent should timeout and terminate');
-  test('Errors when recursive events are defined');
-  test('Infinite loops with recursive events when the checks are disabled');
-  test('Can load balance between multiple workers');
+  // test('Worker wont kill itself, parent should timeout and terminate');
+  // test('Errors when recursive events are defined');
+  // test('Infinite loops with recursive events when the checks are disabled');
+  // test('Can load balance between multiple workers');
 
   async function prepareRemoteBananaCase () {
     const remoteBananaComponent = RemoteModuleComponent(bananaEvents, {
@@ -117,6 +119,4 @@ describe('Running components in a worker process', () => {
 
     return { mediator, container, remoteBananaComponent };
   }
-
-  return; // Jest is being retarded and needs this atm -_-
 });
