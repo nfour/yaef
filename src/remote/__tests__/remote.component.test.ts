@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { ComponentMediator, IMediator } from '../../system';
 import { RemoteModuleComponent } from '../remote';
-import { A, apple, banana, bananaEvents, C } from './fixtures/components';
+import { A, apple, banana, BananaDef, C } from './fixtures/components';
 
 const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
@@ -69,7 +69,7 @@ describe('Running components in a worker process', () => {
     const start = Date.now();
 
     const bananas = Array(spawnSize).fill('').map(() => {
-      return RemoteModuleComponent(bananaEvents, {
+      return RemoteModuleComponent(BananaDef, {
         module: { path: bananaComponentPath, member: bananaMember },
       });
     });
@@ -104,7 +104,7 @@ describe('Running components in a worker process', () => {
   // test('Can load balance between multiple workers');
 
   async function prepareRemoteBananaCase () {
-    const remoteBananaComponent = RemoteModuleComponent(bananaEvents, {
+    const remoteBananaComponent = RemoteModuleComponent(BananaDef, {
       module: {
         path: bananaComponentPath,
         member: bananaMember,

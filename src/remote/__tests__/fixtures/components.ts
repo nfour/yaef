@@ -1,26 +1,28 @@
-import { Component, IEventInputs } from '../../../system';
+import { Component } from '../../../system';
 
 export const A = { name: 'A' };
 export const B = { name: 'B' };
 export const C = { name: 'C' };
 
-export const appleEvents = {
+export const AppleDef = {
+  name: 'Apple',
   observations: [A],
   publications: [B],
 };
 
-export const bananaEvents = {
+export const BananaDef = {
+  name: 'Banana',
   observations: [B],
   publications: [C],
 };
 
-export const apple = Component(appleEvents, (mediator) => {
+export const apple = Component(AppleDef, (mediator) => {
   mediator.observe(A, () => {
     mediator.publish(B);
   });
 });
 
-export const banana = Component(bananaEvents, (mediator) => {
+export const banana = Component(BananaDef, (mediator) => {
   mediator.observe(B, () => {
     mediator.publish(C);
   });

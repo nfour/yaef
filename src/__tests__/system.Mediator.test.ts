@@ -23,7 +23,7 @@ test('Can mediate events within components', async () => {
   const eventBarReceived = jest.fn();
   const eventFooReceived = jest.fn();
 
-  const component1 = Component({ observations: [Foo], publications: [Bar] }, (m) => {
+  const component1 = Component({ name: '1', observations: [Foo], publications: [Bar] }, (m) => {
     m.observe(Foo, (args) => {
       expect(args.a === 1).toBe(true);
 
@@ -33,7 +33,7 @@ test('Can mediate events within components', async () => {
     });
   });
 
-  const component2 = Component({ observations: [Bar], publications: [] }, (m) => {
+  const component2 = Component({ name: '2', observations: [Bar], publications: [] }, (m) => {
     m.observe(Bar, (args) => {
       eventBarReceived();
     });

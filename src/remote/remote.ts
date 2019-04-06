@@ -3,14 +3,14 @@ import Debug from 'debug';
 import { resolve } from 'path';
 import { MessageChannel, Worker } from 'worker_threads';
 
-import { IComponent, IEventInputs } from '../';
+import { IComponent, IComponentInput } from '../';
 import { IMessages, IRemoteModuleConfig } from './types';
 
 const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponent.js');
 
 const debug = Debug(`RemoteModule`);
 
-export function RemoteModuleComponent<E extends IEventInputs> (
+export function RemoteModuleComponent<E extends IComponentInput> (
   eventInput: E,
   config: IRemoteModuleConfig,
 ): IComponent<E> {

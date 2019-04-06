@@ -10,7 +10,7 @@ describe('The interfaces fit together', () => {
   test('Component', async () => {
     expect(Bar.name).toBe('Bar');
 
-    const component = Component({ observations: [Foo], publications: [Bar] }, (m) => {
+    const component = Component({ name: '1', observations: [Foo], publications: [Bar] }, (m) => {
       m.observe(Foo, (args) => {
         args.a === 1;
 
@@ -28,7 +28,7 @@ describe('The interfaces fit together', () => {
     const eventBarReceived = jest.fn();
     const eventFooReceived = jest.fn();
 
-    const component1 = Component({ observations: [Foo], publications: [Bar] }, (m) => {
+    const component1 = Component({ name: '1', observations: [Foo], publications: [Bar] }, (m) => {
       m.observe(Foo, (args) => {
         args.a === 1;
 
@@ -40,7 +40,7 @@ describe('The interfaces fit together', () => {
       });
     });
 
-    const component2 = Component({ observations: [Bar], publications: [] }, (m) => {
+    const component2 = Component({ name: '2', observations: [Bar], publications: [] }, (m) => {
       m.observe(Bar, (args) => {
         eventBarReceived();
       });

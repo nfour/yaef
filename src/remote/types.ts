@@ -1,6 +1,6 @@
 import { MessagePort } from 'worker_threads';
 
-import { IEventInputs } from '../';
+import { IComponentInput } from '../';
 import { IEvent } from '../system';
 
 export interface IRemoteModuleConfig {
@@ -11,7 +11,7 @@ export interface IMessages {
   'readyMessage': { id: 'ready' };
   'killMessage': { id: 'kill' };
   'portMessage': { id: 'port', port: MessagePort };
-  'componentWorkerData': { eventInput: IEventInputs, module: IRemoteModuleConfig['module'] };
+  'componentWorkerData': { eventInput: IComponentInput, module: IRemoteModuleConfig['module'] };
   'observationMessage': { id: 'observation', event: IEvent, payload: any };
   'publicationMessage': { id: 'publication', event: IEvent, payload: any };
 }
