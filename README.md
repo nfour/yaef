@@ -1,40 +1,10 @@
 # strict-events
 
-## reaco
+TODO:
+- Redefine "definition" interfaces as "signatures" or "sig/sigs"
+  - Seems like the better word to describe both event & component identifying configurations
+- Create a ComponentSignature function which should serve to merely type-check input and emit that same output in the form of a type that can feed the first arg of `Component(sig, fn)`
 
-> reaco is a project that only serves as a base to argue for event arch'ed frameworks and what the difference is/lessons to be learned.
+## Documented example
 
-### Things that reaco got wrong:
-
-- Components define events as strings.
-  - They are typed - but are not completely enforced,
-    and are difficult to maintain (3 places)
-- Components connect wildly between each other
-  - Although this is a more flexible implementation, it means one can not track event propagation between components in a clear manner
-- 
-### Possible improvements:
-
-- Events are defined as interfaces
-  - These interfaces, likely implemented as Classes, should define the call signature of the messages and a serializable identifier to facilitate message passing
-- Components connect via containers instead of each component being glued to each other
-- Components, on construction, define the events they consume and publish, through dependency injection
-
-With that said, we could just do something entirely different to meet the goals.
-
-## Goals:
-
-- Produce new iteration of an evented framework
-- Must be simple in both api and concept, within the limits of soundness
-- Must not have complex rules or logic, only glue
-- Must provide support for arbitrary event passing layers, eg. remote components, IPC etc. ensuring event lifecycles are easy to reason about
-
-## Research
-
-- Entity component system (eg. unreal engine)
-  - https://github.com/Xan0C/curbl-ecs#readme
-    - New project, based on ECS
-    - Typescript
-    - Dependency injection
-    - Classes & decorators
-  - https://github.com/ianpaschal/aurora#readme
-    - Game engine basis
+- [./examples/overview.ts](./examples/overview.ts)

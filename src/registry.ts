@@ -22,3 +22,8 @@ export class Registry<C extends IComponent<IComponentInput>> {
     return (() => { /**/ }) as any;
   }
 }
+
+/** Intended to abtract many components into a single api */
+export class ComponentProxy {
+
+}
