@@ -46,7 +46,8 @@ const apple = Component(Apple, (m) => {
 
 // Initialize the event mediator
 
-const mediator = await ComponentMediator({ components: [apple, harvester] }).initialize();
+const mediator = await ComponentMediator({ components: [apple, harvester] })
+  .initialize();
 
 // Emit some events.
 
