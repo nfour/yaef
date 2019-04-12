@@ -1,6 +1,6 @@
-import { IComponent, IComponentInput } from './system';
+import { IComponent, IComponentSignature } from './system';
 
-export class Registry<C extends IComponent<IComponentInput>> {
+export class Registry<C extends IComponent<IComponentSignature>> {
   /** TODO: support many components with the same name via proxy wrapper? */
   components: Map<C['name'], C> = new Map();
 
@@ -12,7 +12,7 @@ export class Registry<C extends IComponent<IComponentInput>> {
    * TODO: must wrap all of these in a proxy component in order to
    * allow multiple components of the same kind to be registered
    */
-  get<In extends IComponentInput> (input: In): IComponent<In> {
+  get<In extends IComponentSignature> (input: In): IComponent<In> {
     const { name } = input;
 
     if (this.components.has(name)) {

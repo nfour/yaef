@@ -4,7 +4,7 @@ import { map } from 'bluebird';
 
 import { ErrorFromCallPoint } from './lib';
 
-export function Component<E extends IComponentInput> (
+export function Component<E extends IComponentSignature> (
   input: E,
   callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
@@ -33,7 +33,7 @@ const CheckMediatorEventName = (from: string) => (name?: string) => {
 
 const getNameFromEvent = (event: IEventShapes) => event.name || event.constructor.name;
 
-export class SimpleMediator<Events extends IEvents> implements IMediator<Events> {
+export class SimpleMediator<Events extends IEventSignatures> implements IMediator<Events> {
   _events!: Events;
 
   private observers: Map<any, Array<{ event: any, callback: (event: any) => any }>> = new Map();
@@ -100,7 +100,7 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: { 
   };
 }
 
-export interface IMediator<Events extends IEvents> {
+export interface IMediator<Events extends IEventSignatures> {
   _events: Events;
 
   observe <Es extends this['_events']['observations']> (event: Es, ...args: any[]): any;
@@ -117,30 +117,30 @@ export interface EventTuplesToUnion<E extends IComponentEvents> {
   publications: E['publications'][number];
 }
 
-export interface IEvent { readonly name?: string; [k: string]: unknown; }
+export interface IEventSignature { readonly name?: string; [k: string]: unknown; }
 
-export type IEventShapes = UnionToIntersection<IEvent>;
+export type IEventShapes = UnionToIntersection<IEventSignature>;
 
-export interface IEvents {
-  observations: IEvent;
-  publications: IEvent;
+export interface IEventSignatures {
+  observations: IEventSignature;
+  publications: IEventSignature;
 }
 
-export interface IComponentInput<E extends IEvent = IEvent> {
+export interface IComponentSignature<E extends IEventSignature = IEventSignature> {
   name: string;
   observations: E[];
   publications: E[];
 }
 
-export interface IComponentEvents<Event extends IEvent = IEvent> {
+export interface IComponentEvents<Event extends IEventSignature = IEventSignature> {
   observations: Event[];
   publications: Event[];
 }
 
-export type AnonComponent<Events extends IEvents> = (mediator: SimpleMediator<Events>) => void;
+export type AnonComponent<Events extends IEventSignatures> = (mediator: SimpleMediator<Events>) => void;
 
 export interface IComponent<
-  In extends IComponentInput,
+  In extends IComponentSignature,
   M = SimpleMediator<EventTuplesToUnion<In>>,
 > {
   (mediator: M): void | Promise<void>;
