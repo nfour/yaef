@@ -34,11 +34,20 @@ const CheckMediatorEventName = (from: string) => (name?: string) => {
 const getNameFromEvent = (event: IEventShapes) => event.name || event.constructor.name;
 
 export class SimpleMediator<Events extends IEventSignatures> implements IMediator<Events> {
-  _events!: Events;
+  /** For storing type information */
+  Events!: Events;
 
-  private observers: Map<any, Array<{ event: any, callback: (event: any) => any }>> = new Map();
+  observers: Map<any, Array<{ event: any, callback: (event: any) => any }>> = new Map();
 
-  observe <Es extends this['_events']['observations']> (event: Es, callback: (event: Es) => any) {
+  /** Add many observers, say, from another mediator */
+  addObservers (observers: SimpleMediator<any>['observers']) {
+    this.observers = new Map([
+      ...this.observers.entries(),
+      ...observers.entries(),
+    ]);
+  }
+
+  observe <Es extends this['Events']['observations']> (event: Es, callback: (event: Es) => any) {
     const name = event.name;
 
     CheckMediatorEventName(this.constructor.name)(name);
@@ -51,7 +60,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
     this.observers.set(name, [...observers, { event, callback }]);
   }
 
-  publish<Es extends this['_events']['publications']> (
+  publish<Es extends this['Events']['publications']> (
     event: Es,
     /** This name thing exists because we are being cheeky with props */
     payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
@@ -60,15 +69,11 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     CheckMediatorEventName(this.constructor.name)(name);
 
-    if (!this.observers.has(name)) {
-      return;
-    }
+    if (!this.observers.has(name)) { return; }
 
     const observers = this.observers.get(name)!;
 
-    return observers.map(({ callback }) => {
-      return callback(payload || event);
-    });
+    return observers.map(({ callback }) => callback(payload));
   }
 }
 
@@ -81,11 +86,7 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: { 
 
   return {
     mediator,
-
-    // Eh?
-    add () { /** */ },
-
-    async initialize () {
+    async connect () {
       // TODO: if anything tries to .publish before this is called, they should get rekt
       // Or it should be buffered, like in `reaco`
 
@@ -93,18 +94,17 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: { 
 
       return mediator;
     },
-
-    async kill () {
-      await map(components, (component) => component.kill());
+    async disconnect () {
+      await map(components, (component) => component.disconnect());
     },
   };
 }
 
 export interface IMediator<Events extends IEventSignatures> {
-  _events: Events;
+  Events: Events;
 
-  observe <Es extends this['_events']['observations']> (event: Es, ...args: any[]): any;
-  publish <Es extends this['_events']['publications']> (event: Es, payload: unknown): any;
+  observe <Es extends this['Events']['observations']> (event: Es, ...args: any[]): any;
+  publish <Es extends this['Events']['publications']> (event: Es, payload: unknown): any;
 }
 
 export interface MergeComponentEvents<C extends IComponent<any>> {
@@ -150,5 +150,5 @@ export interface IComponent<
   observations: In['observations'];
   publications: In['publications'];
 
-  kill (): void | Promise<void>;
+  disconnect (): void | Promise<void>;
 }

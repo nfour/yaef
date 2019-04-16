@@ -35,7 +35,7 @@ void (async () => {
 
   debug('Initializing mediator...');
 
-  const mediator = await ComponentMediator({ components: [component] }).initialize();
+  const mediator = await ComponentMediator({ components: [component] }).connect();
 
   debug('Mediator initialized.');
 

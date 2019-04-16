@@ -41,7 +41,7 @@ test('Can mediate events within components', async () => {
 
   const componentMediator = ComponentMediator({ components: [component1, component2] });
 
-  const mediator = await componentMediator.initialize();
+  const mediator = await componentMediator.connect();
 
   mediator.publish(Foo, { a: 1, x: 999 });
 

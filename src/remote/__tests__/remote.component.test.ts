@@ -13,7 +13,7 @@ describe('Running components in a worker process', () => {
   const containers: Array<ReturnType<typeof ComponentMediator>> = [];
 
   afterEach(async () => {
-    for (const c of containers) { await c.kill(); }
+    for (const c of containers) { await c.disconnect(); }
 
     containers.splice(0, containers.length); // Empty
   });
@@ -22,7 +22,7 @@ describe('Running components in a worker process', () => {
     const container = ComponentMediator({ components: [apple, banana] });
     containers.push(container);
 
-    const mediator = await container.initialize();
+    const mediator = await container.connect();
 
     const eventCCalled = jest.fn();
 
@@ -78,7 +78,7 @@ describe('Running components in a worker process', () => {
 
     containers.push(container);
 
-    const mediator = await container.initialize();
+    const mediator = await container.connect();
 
     console.log(`Took ${Date.now() - start}ms to initialize ${spawnSize} workers`);
 
@@ -115,7 +115,7 @@ describe('Running components in a worker process', () => {
 
     containers.push(container);
 
-    const mediator = await container.initialize();
+    const mediator = await container.connect();
 
     return { mediator, container, remoteBananaComponent };
   }

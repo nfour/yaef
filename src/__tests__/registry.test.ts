@@ -22,7 +22,7 @@ test('Can add and retrieve a component to a Registry', async () => {
 
   const reggedBanana = registry.get(BananaDefinition);
 
-  const mediator = await ComponentMediator({ components: [reggedBanana] }).initialize();
+  const mediator = await ComponentMediator({ components: [reggedBanana] }).connect();
 
   const barEventCalled = jest.fn();
 

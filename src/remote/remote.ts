@@ -45,7 +45,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   });
 
   const component = <IComponent<E>> (async (mediator) => {
-    component.kill = async () => {
+    component.disconnect = async () => {
       /** Make sure after time, terminate */
       const timedExecution = delay(500).then(() => {
         workerPort.close();
