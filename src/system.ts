@@ -14,7 +14,7 @@ export function Component<E extends IComponentSignature> (
     name: { value: input.name, writable: false },
     observations: { value: input.observations, writable: false },
     publications: { value: input.publications, writable: false },
-    kill: { value: () => { /**/ } },
+    kill: { value: () => { /**/ } }, // TODO: make this useful?
   });
 
   return component;
@@ -100,6 +100,14 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: { 
   };
 }
 
+export function ComponentSignature<In extends Omit<IComponentSignature<any>, 'name'>, N extends string> (name: N, input?: In) {
+  return { name, ...input || {} };
+}
+
+export function EventSignature<In extends Omit<IEventSignature, 'name'>, N extends string> (name: N, input?: In) {
+  return { name, ...input || {} };
+}
+
 export interface IMediator<Events extends IEventSignatures> {
   Events: Events;
 
@@ -139,6 +147,9 @@ export interface IComponentEvents<Event extends IEventSignature = IEventSignatur
 
 export type AnonComponent<Events extends IEventSignatures> = (mediator: SimpleMediator<Events>) => void;
 
+/**
+ * TODO: Need `In['name']` to actually be a literal instead of `string`
+ */
 export interface IComponent<
   In extends IComponentSignature,
   M = SimpleMediator<EventTuplesToUnion<In>>,
