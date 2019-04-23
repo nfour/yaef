@@ -6,6 +6,7 @@ test('Can send events to multiple components through a proxy', () => {
   const Y = EventSignature('Y');
   const Z = EventSignature('Z');
 
+  // TODO: SHould we actually have `name` seperate so that obs/pubs can be considered the immutable signature?
   const xToY = Component({ name: 'xToY', observations: [X], publications: [Y] }, (m) => {
     m.observe(X, () => m.publish(Y));
   });
