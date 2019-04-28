@@ -1,44 +1,44 @@
 import { flatten, map, uniqBy } from 'lodash';
 
-import { EventTuplesToUnion, IComponent, IComponentSignature, IEventSignature, SimpleMediator } from './system';
+import { EventTuplesToUnion, IComponent, IComponentSignature, IMediator, SimpleMediator } from './system';
 
-export class Registry<C extends IComponent<IComponentSignature>> {
-  /** TODO: support many components with the same name via proxy wrapper? */
-  components: Map<C['name'], IComponentProxy<C>> = new Map();
+/**
+ * The Registry is responsible for abtracting many Components and allowing lookup by name.
+ * It does this by abstracting components to a ComponentProxy, which can house many components of the same name.
+ *
+ * TODO: Add type generics to support strongly typed component signatures
+ */
+export class Registry {
+  components: Map<IComponentProxy['name'], IComponentProxy> = new Map();
+
+  constructor ({ components }: { components?: Array<IComponent<any>> } = {}) {
+    if (components) {
+      components.forEach((c) => this.add(c));
+    }
+  }
 
   add <In extends IComponent<any>> (component: In) {
     const { name } = component;
-    const existing = this.components.has(name);
 
-    // FIXME: the `any` casting is bad mkay
-    if (!existing) {
-      const oldProxy = this.components.get(name)!;
+    const lastComponent = this.components.get(name);
 
-      this.components.set(name, ComponentProxy({ name, components: [...oldProxy.components, component] as any }));
-    } else {
-      this.components.set(name, component as any);
+    const nextComponent = lastComponent
+      ? ComponentProxy({ name, components: [...lastComponent.components, component] })
+      : ComponentProxy({ name, components: [component] });
 
-    }
+    this.components.set(name, nextComponent);
   }
 
-  /**
-   * TODO: must wrap all of these in a proxy component in order to
-   * allow multiple components of the same kind to be registered
-   */
-  get<In extends IComponentSignature> (input: In): IComponentProxy<In> {
+  get<In extends IComponentSignature> (input: In): IComponentProxy<In> | undefined {
     const { name } = input;
 
-    if (this.components.has(name)) {
-      return this.components.get(name)!;
-    }
-
-    return (() => { /**/ }) as any;
+    return this.components.get(name);
   }
 }
 
-/** Intended to abtract many components into a single api */
+/** Abtract many components to a single component */
 export function ComponentProxy<
-  C extends IComponent,
+  C extends IComponent<any>,
   N extends string = string
 > ({ name, components }: { name: N, components: C[] }) {
   const component = <IComponentProxy<C>> ((mediator) => {

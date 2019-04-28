@@ -4,7 +4,10 @@ import { map } from 'bluebird';
 
 import { ErrorFromCallPoint } from './lib';
 
-export function Component<E extends IComponentSignature> (
+export function Component<
+  E extends IComponentSignature,
+  M extends SimpleMediator<EventTuplesToUnion<E>>
+> (
   input: E,
   callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
@@ -115,7 +118,7 @@ export interface IMediator<Events extends IEventSignatures> {
   Events: Events;
 
   observe <Es extends this['Events']['observations']> (event: Es, ...args: any[]): any;
-  publish <Es extends this['Events']['publications']> (event: Es, payload: unknown): any;
+  publish <Es extends this['Events']['publications']> (event: Es, payload?: unknown): any;
 }
 
 export interface MergeComponentEvents<C extends IComponent<any>> {
@@ -155,7 +158,7 @@ export type AnonComponent<Events extends IEventSignatures> = (mediator: SimpleMe
  */
 export interface IComponent<
   In extends IComponentSignature = IComponentSignature,
-  M = SimpleMediator<EventTuplesToUnion<In>>,
+  M = SimpleMediator<EventTuplesToUnion<In>>, // TODO: support arbitrary mediator signatures, dont couple to Simple
 > {
   (mediator: M): void | Promise<void>;
 
