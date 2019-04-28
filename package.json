@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
-    "preversion": "run-p lint build test",
+    "preversion": "yarn build && run-p lint test",
     "test": "source ./.env && jest"
   },
   "dependencies": {
