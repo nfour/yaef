@@ -24,10 +24,10 @@ type IFruitTypes = 'Apple' | 'Banana';
 // Create some event signatures
 
 const ItIsANewDay = EventSignature('ItIsANewDay')
-const FruitIsRipe = EventSignature('IsRipe', { fruit: '' as IFruitTypes });
+const FruitIsRipe = EventSignature('IsRipe', { fruit: <IFruitTypes> '' });
 
 // Or:
-const HarvestedFruit = { name: 'HarvestedFruit' as const, fruit: '' as IFruitTypes };
+const HarvestedFruit = { name: <const> 'HarvestedFruit', fruit: <IFruitTypes> '' };
 
 // Create some component signatures
 
@@ -38,7 +38,7 @@ const Apple = ComponentSignature('Apple', {
 
 // Or:
 const Harvester = {
-  name: 'Harvester' as const,
+  name: <const> 'Harvester',
   observations: [FruitIsRipe],
   publications: [HarvestedFruit],
 };
