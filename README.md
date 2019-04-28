@@ -17,24 +17,26 @@
 It looks something like this:
 
 ```ts
-import { Component, ComponentMediator } from '?';
+import { Component, ComponentMediator, ComponentSignature, EventSignature } from 'yaef';
 
 type IFruitTypes = 'Apple' | 'Banana';
 
 // Create some event signatures
 
-const ItIsANewDay = { name: 'ItIsANewDay' as const };
-const FruitIsRipe = { name: 'IsRipe' as const, fruit: '' as IFruitTypes };
+const ItIsANewDay = EventSignature('ItIsANewDay')
+const FruitIsRipe = EventSignature('IsRipe', { fruit: '' as IFruitTypes });
+
+// Or:
 const HarvestedFruit = { name: 'HarvestedFruit' as const, fruit: '' as IFruitTypes };
 
 // Create some component signatures
 
-const Apple = {
-  name: 'Apple' as const,
+const Apple = ComponentSignature('Apple', {
   observations: [ItIsANewDay],
   publications: [FruitIsRipe],
-};
+});
 
+// Or:
 const Harvester = {
   name: 'Harvester' as const,
   observations: [FruitIsRipe],
@@ -74,4 +76,4 @@ setInterval(theEarthRotates, 1000); // That is a bit fast
 
 ## Documented example
 
-- [./examples/overview.ts](./examples/overview.ts)
+- (WIP) [./examples/overview.ts](./examples/overview.ts)
