@@ -9,5 +9,5 @@
     "rootDir": "src",
     "lib": ["es2018"]
   },
-  "exclude": ["examples"]
+  "include": ["src"]
 }
