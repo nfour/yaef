@@ -8,8 +8,9 @@
 
 ## Usage
 
-- When executing this package you must set the environment variable:
+- When executing this package you must set an environment variable:
   - `NODE_OPTIONS=--experimental-worker`
+- Requires NodeJS `>= 10.5.0`
 
 ## Example
 
