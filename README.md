@@ -8,9 +8,10 @@
 
 ## Usage
 
-- When executing this package you must set an environment variable:
-  - `NODE_OPTIONS=--experimental-worker`
-- Requires NodeJS `>= 10.5.0`
+- If you are utilizing `RemoteModuleComponent` then:
+  - When executing this package you must set an environment variable:
+    - `NODE_OPTIONS=--experimental-worker`
+  - Requires NodeJS `>= 10.5.0`
 
 ## Example
 
@@ -76,7 +77,7 @@ function theEarthRotates () {
 
 async function theEarthExplodes () {
   clearTimeout(dayInterval);
-  
+
   await disconnect(); // If components need to gracefully die, they can here
 }
 
