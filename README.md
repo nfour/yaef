@@ -2,9 +2,14 @@
 
 > This is a **!! Work in progress !!**
 
++ [Usage](#usage)
 + [Example](#example)
 + [Documented example](#documented-example)
 
+## Usage
+
+- When executing this package you must set the environment variable:
+  - `NODE_OPTIONS=--experimental-worker`
 
 ## Example
 
