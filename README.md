@@ -60,10 +60,13 @@ const apple = Component(Apple, (m) => {
   });
 });
 
-// Initialize the event mediator
 
-const mediator = await ComponentMediator({ components: [apple, harvester] })
-  .initialize();
+const { disconnect, connect, mediator } = ComponentMediator({
+  components: [apple, harvester]
+});
+
+// The components are initialized with the mediator
+await connect();
 
 // Emit some events.
 
@@ -71,7 +74,15 @@ function theEarthRotates () {
   mediator.publish(ItIsANewDay);
 }
 
-setInterval(theEarthRotates, 1000); // That is a bit fast
+async function theEarthExplodes () {
+  clearTimeout(dayInterval);
+  
+  await disconnect(); // If components need to gracefully die, they can here
+}
+
+const dayInterval = setInterval(theEarthRotates, 1000); // That is a bit fast
+
+setTimeout(theEarthExplodes, 20000);
 ```
 
 ## Documented example
