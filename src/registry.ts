@@ -48,12 +48,14 @@ export function ComponentProxy<
   const publications = flatten(uniqBy(map(components, 'publications'), 'name'));
   const observations = flatten(uniqBy(map(components, 'observations'), 'name'));
 
-  Object.defineProperties(component, {
+  type ComponentPropConstraints = { [K in keyof IComponent<any>]: any };
+
+  Object.defineProperties(component, <ComponentPropConstraints> {
     name: { value: name, writable: false },
     observations: { value: observations, writable: false },
     publications: { value: publications, writable: false },
     components: { value: components, writable: false },
-    kill: { value: () => { /**/ } }, // TODO: make this useful?
+    disconnect: { value: () => { /**/ } }, // TODO: make this useful?
   });
 
   return component;

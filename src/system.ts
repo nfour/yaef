@@ -12,11 +12,13 @@ export function Component<
 ): IComponent<E> {
   const component = <IComponent<E>> ((mediator) => callback(mediator));
 
-  Object.defineProperties(component, {
+  type ComponentPropConstraints = { [K in keyof IComponent<any>]: any };
+
+  Object.defineProperties(component, <ComponentPropConstraints> {
     name: { value: input.name, writable: false },
     observations: { value: input.observations, writable: false },
     publications: { value: input.publications, writable: false },
-    kill: { value: () => { /**/ } }, // TODO: make this useful?
+    disconnect: { value: () => { /**/ } }, // TODO: make this useful?
   });
 
   return component;
