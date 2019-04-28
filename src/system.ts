@@ -5,8 +5,7 @@ import { map } from 'bluebird';
 import { ErrorFromCallPoint } from './lib';
 
 export function Component<
-  E extends IComponentSignature,
-  M extends SimpleMediator<EventTuplesToUnion<E>>
+  E extends IComponentSignature
 > (
   input: E,
   callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
