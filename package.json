@@ -1,7 +1,7 @@
 {
   "name": "yaef",
   "main": "build",
-  "version": "0.0.2-alpha",
+  "version": "0.0.3-alpha",
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json",
