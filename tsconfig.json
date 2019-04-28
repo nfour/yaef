@@ -3,6 +3,7 @@
     "strict": true,
     "incremental": true,
     "outDir": "build",
+    "declaration": true,
     "tsBuildInfoFile": "./build/tsconfig.tsbuildinfo",
     "downlevelIteration": true,
     "rootDir": "src",
