@@ -1,8 +1,11 @@
 {
   "name": "yaef",
   "main": "build",
+  "version": "0.0.1-alpha",
   "scripts": {
     "build": "tsc",
+    "lint": "tslint -p tsconfig.json",
+    "preversion": "run-p lint build test",
     "test": "source ./.env && jest"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "ts-jest": "^24.0.0",
     "tslint": "^5.14.0",
     "tslint-config-temando": "^1.6.1",
-    "typescript": "~3.4.5"
+    "typescript": "~3.4.5",
+    "yarn-run-all": "^3.1.1"
   }
 }

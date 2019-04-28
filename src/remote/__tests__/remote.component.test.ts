@@ -80,6 +80,7 @@ describe('Running components in a worker process', () => {
 
     const mediator = await container.connect();
 
+// tslint:disable-next-line: no-console
     console.log(`Took ${Date.now() - start}ms to initialize ${spawnSize} workers`);
 
     const eventCCalled = jest.fn();
