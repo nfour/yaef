@@ -9,7 +9,7 @@
 ## Usage
 
 - If you are utilizing `RemoteModuleComponent` then:
-  - When executing this package you must set an environment variable:
+  - You must set an environment variable:
     - `NODE_OPTIONS=--experimental-worker`
   - Requires NodeJS `>= 10.5.0`
 
