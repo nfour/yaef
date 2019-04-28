@@ -1,6 +1,4 @@
-import { delay } from 'bluebird';
-
-import { Component, ComponentMediator, Registry, RemoteModuleComponent } from '../src';
+import { Component, ComponentMediator, RemoteModuleComponent } from '../src';
 
 // tslint:disable:no-console
 

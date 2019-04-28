@@ -1,4 +1,12 @@
-# strict-events
+# YAEF: Yet Another Event Framework
+
+> This is a **!! Work in progress !!**
+
++ [Example](#example)
++ [Documented example](#documented-example)
+
+
+## Example
 
 It looks something like this:
 

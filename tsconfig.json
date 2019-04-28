@@ -3,7 +3,9 @@
     "strict": true,
     "incremental": true,
     "outDir": "build",
+    "tsBuildInfoFile": "./build/tsconfig.tsbuildinfo",
     "downlevelIteration": true,
+    "rootDir": "src",
     "lib": ["es2018"]
   },
   "exclude": ["examples"]
