@@ -1,11 +1,16 @@
 {
   "name": "yaef-monorepo",
   "private": true,
-  "scripts": {
-
-  },
-  "workspaces": ["packages/*"],
+  "scripts": {},
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
-    "oao": "^1.6.0"
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.2",
+    "oao": "^1.6.0",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.16.0",
+    "tslint-config-temando": "^1.6.1"
   }
 }
