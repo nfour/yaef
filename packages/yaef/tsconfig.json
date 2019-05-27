@@ -1,13 +1,6 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "strict": true,
-    "incremental": true,
-    "outDir": "build",
-    "declaration": true,
-    "tsBuildInfoFile": "./build/tsconfig.tsbuildinfo",
-    "downlevelIteration": true,
-    "rootDir": "src",
-    "lib": ["es2018"]
-  },
-  "include": ["packages"]
+    "outDir": "./build"
+  }
 }
