@@ -3,15 +3,10 @@
   "version": "0.0.5-alpha",
   "main": "./build",
   "files": ["./build"],
-  "scripts": {
-    "build": "tsc",
-    "test": "source ./.env && jest"
-  },
   "dependencies": {
     "yaef": "^0.0.5-alpha"
   },
   "devDependencies": {
-    "jest": "^24.5.0",
     "typescript": "~3.4.5"
   },
   "license": "MIT"

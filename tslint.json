@@ -3,5 +3,8 @@
   "rules": {
     "interface-name": false,
     "max-classes-per-file": false
+  },
+  "linterOptions": {
+    "exclude": ["node_modules", "**/build"]
   }
 }

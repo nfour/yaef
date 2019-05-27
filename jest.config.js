@@ -4,4 +4,5 @@ module.exports = {
   testMatch: ["**/*.test.ts"],
   preset: 'ts-jest',
   testEnvironment: 'node',
+  modulePathIgnorePatterns: ["/node_modules/", "/build/"]
 };

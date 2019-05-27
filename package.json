@@ -1,13 +1,16 @@
 {
   "name": "yaef-monorepo",
   "private": true,
-  "scripts": {},
-  "workspaces": [
-    "packages/*"
-  ],
+  "scripts": {
+    "build": "oao all --parallel --tree tsc",
+    "test": "source ./.env && jest",
+    "lint": "tslint packages/**/src/**/*.ts"
+  },
+  "workspaces": ["packages/*"],
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
+    "jest": "^24.8.0",
     "oao": "^1.6.0",
     "ts-jest": "^24.0.2",
     "tslint": "^5.16.0",
