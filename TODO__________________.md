@@ -1,0 +1,4 @@
+- [ ] Configure yarn workspaces
+- [ ] Add yarn workspace utility
+- [ ] Get `yaef` package building as before
+- [ ] Add new package, `yaef.http`
