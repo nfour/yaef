@@ -1,4 +1,4 @@
-import { Component, ComponentMediator, RemoteModuleComponent } from '../src';
+import { Component, ComponentMediator, RemoteModuleComponent } from '../packages/yaef';
 
 // tslint:disable:no-console
 
