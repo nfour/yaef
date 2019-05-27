@@ -2,7 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "incremental": true,
-    "outDir": "build",
     "declaration": true,
     "downlevelIteration": true,
     "lib": ["es2018"]

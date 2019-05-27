@@ -1,8 +1,7 @@
-import './types';
-
 import { map } from 'bluebird';
 
 import { ErrorFromCallPoint } from './lib';
+import { Omit, UnionToIntersection } from './types';
 
 export function Component<
   E extends IComponentSignature

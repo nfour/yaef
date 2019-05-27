@@ -1,6 +1,6 @@
 import { flatten, map, uniqBy } from 'lodash';
 
-import { EventTuplesToUnion, IComponent, IComponentSignature, IMediator, SimpleMediator } from './system';
+import { EventTuplesToUnion, IComponent, IComponentSignature, SimpleMediator } from './system';
 
 /**
  * The Registry is responsible for abtracting many Components and allowing lookup by name.

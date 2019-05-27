@@ -88,4 +88,4 @@ setTimeout(theEarthExplodes, 20000);
 
 ## Documented example
 
-- (WIP) [./examples/overview.ts](./examples/overview.ts)
+- (WIP) [./docs/overview.ts](./docs/overview.ts)
