@@ -30,6 +30,13 @@ export function HttpServer ({ host, port }: {
     });
   }
 
+  /**
+   * TODO:
+   * - How is the best way to do the Route -> Request -> Response lifecycle with events?
+   * - Request `id` ?
+   * - A more complex mediator with replying ?
+   */
+
   return Component({
     name: 'HttpServer',
     observations: [HttpServerStart, HttpServerAddRoute],
