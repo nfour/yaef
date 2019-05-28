@@ -1,6 +1,7 @@
 {
   "name": "yaef-monorepo",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "oao all --parallel --tree tsc",
     "test": "source ./.env && jest",
