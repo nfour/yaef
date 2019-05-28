@@ -2,8 +2,16 @@
   "name": "yaef.http",
   "version": "0.0.5-alpha",
   "main": "./build",
-  "files": ["./build"],
+  "files": [
+    "./build"
+  ],
   "dependencies": {
+    "@types/koa": "^2.0.48",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-router": "^7.0.40",
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^7.4.0",
     "yaef": "^0.0.5-alpha"
   },
   "devDependencies": {
