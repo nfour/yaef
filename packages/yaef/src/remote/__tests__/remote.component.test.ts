@@ -8,6 +8,8 @@ import { A, apple, banana, BananaDef, C } from './fixtures/components';
 const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
 
+jest.setTimeout(10000);
+
 describe('Running components in a worker process', () => {
   /** Used to clean up after tests */
   const containers: Array<ReturnType<typeof ComponentMediator>> = [];
