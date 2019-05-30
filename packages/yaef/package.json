@@ -1,9 +1,9 @@
 {
   "name": "yaef",
   "version": "0.6.0",
-  "main": "./build",
+  "main": "./build/index",
   "files": [
-    "./build"
+    "./build", "./src"
   ],
   "dependencies": {
     "@types/bluebird": "^3.5.26",

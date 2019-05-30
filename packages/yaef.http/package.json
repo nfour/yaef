@@ -1,7 +1,7 @@
 {
   "name": "yaef.http",
   "version": "0.6.0",
-  "main": "./build",
+  "main": "./build/index",
   "files": [
     "./build"
   ],
@@ -12,7 +12,7 @@
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
-    "yaef": "^0.0.5-alpha"
+    "yaef": "0.6.0"
   },
   "devDependencies": {
     "typescript": "~3.4.5"

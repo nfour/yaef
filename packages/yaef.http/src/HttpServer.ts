@@ -3,10 +3,11 @@ import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
 import { Component, EventSignature } from 'yaef';
 
-export const HttpRequest = EventSignature('HttpRequest');
+import { HttpRequest } from './httpEvents';
+
 export const HttpServerStart = EventSignature('HttpServerStart');
 export const HttpServerReady = EventSignature('HttpServerReady');
-export const HttpServerAddRoute = EventSignature<{ methods: string[], path: string }>('HttpServerAddRoute');
+export const HttpServerAddRoute = EventSignature('HttpServerAddRoute', {} as { methods: string[], path: string });
 
 export function HttpServer ({ host, port }: {
   port: number,
