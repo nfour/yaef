@@ -1,6 +1,9 @@
 # YAEF: Yet Another Event Framework
 
-> This is a **!! Work in progress !!**
+**Features:**
+- Useful type validation for events 
+- IPC communication, including a **Registry**
+- Clearly defined event model
 
 + [Usage](#usage)
 + [Example](#example)
