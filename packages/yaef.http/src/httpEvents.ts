@@ -3,7 +3,7 @@ import { EventSignature } from 'yaef';
 import { IHttpMethod, IStringDict } from './types';
 
 export const HttpRequest = EventSignature('HttpRequest', {} as {
-  id: string;
+  _eventId: string;
   body: any,
   headers: IStringDict,
   path: string,
@@ -12,8 +12,8 @@ export const HttpRequest = EventSignature('HttpRequest', {} as {
   method: IHttpMethod,
 });
 
-export const HttpResponse = EventSignature('HttpResponse', {} as {
-  id: string;
+export const HttpRequestResponse = EventSignature('HttpResponse', {} as {
+  _eventId: string;
   statusCode: number;
   body: any,
   headers: IStringDict,

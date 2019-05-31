@@ -12,7 +12,7 @@ export function createHttpEventFromKoaContext ({
 }: IRouterContext) {
   const event: typeof HttpRequest = {
     name: 'HttpRequest',
-    id: uuid(),
+    _eventId: uuid(),
     body, headers,
     path, query, params,
     method: method as IHttpMethod,

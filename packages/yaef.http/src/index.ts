@@ -1,1 +1,1 @@
-export * from './HttpServer';
+export * from './KoaHttpServer';
