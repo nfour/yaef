@@ -36,6 +36,8 @@ export function KoaHttpServer ({ host, port }: {
     .use(BodyParser())
     .use(router.routes());
 
+  let server: import('http').Server;
+
   return Component(KoaHttpServerSignature, (m) => {
     const waitForEvent = EventAwaiter(m, { timeout: 10000 });
 
@@ -62,22 +64,20 @@ export function KoaHttpServer ({ host, port }: {
       });
     }
 
-    // function stopServer () {
-    //   koa.
-    // }
+    function stopServer () {
+      server.close(() => {
+        m.publish(KoaHttpServerStopped);
+      });
+    }
 
-    m.observe(AddRouteToKoaHttpServer, ({ methods, path }) => {
-      addRoute({ methods, path });
-    });
-
-    // m.observe(StopKoaHttpServer, () => {
-    //   addRoute({ methods, path });
-    // });
-
-    m.observe(StartKoaHttpServer, () => {
-      koa.listen({ port, host }, () => {
+    function startServer () {
+      server = koa.listen({ port, host }, () => {
         m.publish(KoaHttpServerReady);
       });
-    });
+    }
+
+    m.observe(AddRouteToKoaHttpServer, addRoute);
+    m.observe(StopKoaHttpServer, stopServer);
+    m.observe(StartKoaHttpServer, startServer);
   });
 }

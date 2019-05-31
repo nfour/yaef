@@ -3,9 +3,12 @@ import fetch from 'cross-fetch';
 import { ComponentMediator, EventAwaiter } from 'yaef';
 
 import { HttpRequest, HttpRequestResponse } from '../httpEvents';
-import { AddRouteToKoaHttpServer, KoaHttpServer, KoaHttpServerReady, StartKoaHttpServer } from '../KoaHttpServer';
+import {
+  AddRouteToKoaHttpServer, KoaHttpServer, KoaHttpServerReady, KoaHttpServerStopped, StartKoaHttpServer,
+  StopKoaHttpServer,
+} from '../KoaHttpServer';
 
-test('Start a server and send a request and get a response', async () => {
+test('Start a server and send a request and get a response then stop the server', async () => {
   const server = KoaHttpServer({ host: '0.0.0.0', port: 9999 });
 
   const { connect, mediator } = ComponentMediator({ components: [server] });
@@ -43,6 +46,10 @@ test('Start a server and send a request and get a response', async () => {
   });
 
   const response = await fetchRequestPromise;
+
+  mediator.publish(StopKoaHttpServer);
+
+  await waitFor(KoaHttpServerStopped);
 
   expect(response).toMatchSnapshot();
 });
