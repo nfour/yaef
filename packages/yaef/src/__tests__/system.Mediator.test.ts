@@ -1,4 +1,7 @@
-import { Component, ComponentMediator } from '../system';
+import { delay } from 'bluebird';
+
+import { EventAwaiter } from '../lib';
+import { Component, ComponentMediator, SimpleMediator } from '../system';
 
 test('Can observe published events', () => {
   const { mediator } = ComponentMediator<any>({ components: [] });
@@ -47,4 +50,39 @@ test('Can mediate events within components', async () => {
 
   expect(eventBarReceived).toBeCalledTimes(1);
   expect(eventFooReceived).toBeCalledTimes(1);
+});
+
+describe('SimpleMediator', () => {
+  test('Can remove listeners based on callback', async () => {
+    const mediator = new SimpleMediator();
+
+    const FooEvent = { name: <const> 'foo' };
+
+    const fooEventCb = jest.fn();
+
+    mediator.observe(FooEvent, fooEventCb);
+    mediator.publish(FooEvent);
+    mediator.removeObserver(fooEventCb);
+    mediator.publish(FooEvent);
+
+    expect(fooEventCb).toBeCalledTimes(1);
+    expect(mediator.observers).toMatchSnapshot();
+  });
+
+  test('Can use EventAwaiter to wait for events with promises', async () => {
+    const mediator = new SimpleMediator();
+
+    const FooEvent = { name: <const> 'foo', foo: <number> 0 };
+
+    const waitForEvent = EventAwaiter(mediator);
+
+    delay(50).then(() => {
+      mediator.publish(FooEvent, { foo: 999 });
+    });
+
+    const result = await waitForEvent(FooEvent);
+
+    expect(mediator.observers).toMatchSnapshot();
+    expect(result).toEqual({ foo: 999 });
+  });
 });

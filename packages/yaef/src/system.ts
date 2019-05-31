@@ -36,11 +36,13 @@ const CheckMediatorEventName = (from: string) => (name?: string) => {
 
 const getNameFromEvent = (event: IEventShapes) => event.name || event.constructor.name;
 
+export type IMediatorEventCallback = (event: any) => any;
+
 export class SimpleMediator<Events extends IEventSignatures> implements IMediator<Events> {
   /** For storing type information */
   Events!: Events;
 
-  observers: Map<any, Array<{ event: any, callback: (event: any) => any }>> = new Map();
+  observers: Map<any, Array<{ event: any, callback: IMediatorEventCallback }>> = new Map();
 
   /** Add many observers, say, from another mediator */
   addObservers (observers: SimpleMediator<any>['observers']) {
@@ -48,6 +50,17 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
       ...this.observers.entries(),
       ...observers.entries(),
     ]);
+  }
+
+  removeObserver (inputCallback: IMediatorEventCallback) {
+    for (const observers of this.observers.values()) {
+      const indexMatch = observers.findIndex(({ callback }) => callback === inputCallback);
+
+      if (indexMatch >= 0) {
+        // Remove it.
+        return observers.splice(indexMatch, 1);
+      }
+    }
   }
 
   observe <Es extends this['Events']['observations']> (event: Es, callback: (event: Es) => any) {

@@ -3,3 +3,15 @@
 exports[`Can observe published events 1`] = `"[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: Object"`;
 
 exports[`Can observe published events 2`] = `"[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: undefined"`;
+
+exports[`SimpleMediator Can remove listeners based on callback 1`] = `
+Map {
+  "foo" => Array [],
+}
+`;
+
+exports[`SimpleMediator Can use EventAwaiter to wait for events with promises 1`] = `
+Map {
+  "foo" => Array [],
+}
+`;

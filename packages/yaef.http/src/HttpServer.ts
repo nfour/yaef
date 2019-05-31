@@ -21,6 +21,8 @@ export function HttpServer ({ host, port }: {
   function addRoute ({ methods, path }: { methods: string[], path: string }) {
     router.register(path, methods, async (ctx, next) => {
 
+      // TODO: write a `waitForEvent` which takes an event sig and returns a promise, has a timeout etc. and callback
+
       // const { response } = event;
 
       // if (!response) { return; }
