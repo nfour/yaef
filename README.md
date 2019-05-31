@@ -1,7 +1,7 @@
 # YAEF: Yet Another Event Framework
 
 **Features:**
-- Useful type validation for events 
+- Useful type validation for evented architectures
 - IPC communication, including a **Registry**
 - Clearly defined event model
 
