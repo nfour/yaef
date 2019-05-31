@@ -40,8 +40,8 @@ config({ cancellation: true });
  * const payload = await waitForEvent(MySingularEvent)
  */
 export function EventAwaiter<M extends SimpleMediator<any>> (mediator: M, { timeout = 5000 }: { timeout?: number } = {}) {
-  return function waitForEvent<E extends IEventSignature> (event: E, filterCb?: ((event: E) => boolean)) {
-    return new Promise((resolve, reject) => {
+  return function waitForEvent<E extends IEventSignature> (event: E, filterCb?: ((event: E) => boolean)): Promise<E> {
+    return new Promise<E>((resolve, reject) => {
       /**
        * This code is probably way more verbose than necessary but whatever, find a lib later.
        */

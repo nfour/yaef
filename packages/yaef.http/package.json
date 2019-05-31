@@ -12,9 +12,11 @@
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
+    "uuid": "~3.3.2",
     "yaef": "0.6.0"
   },
   "devDependencies": {
+    "@types/uuid": "~3.4.3",
     "typescript": "~3.4.5"
   },
   "license": "MIT"

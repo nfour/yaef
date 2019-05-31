@@ -10,4 +10,4 @@
 ## Codebase
 
 - Move to eslint
-
+- Add global tsc --watch

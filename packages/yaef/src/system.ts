@@ -120,7 +120,7 @@ export function ComponentSignature<
   In extends Omit<IComponentSignature<any>, 'name'>,
   N extends string = string
 > (name: N, input?: In) {
-  return { name, ...input || {} };
+  return { name, ...input || {} } as { name: N } & In;
 }
 
 export function EventSignature<In extends Omit<IEventSignature, 'name'>, N extends string = string> (name: N, input?: In) {

@@ -1,13 +1,18 @@
+import * as Debug from 'debug';
 import * as Koa from 'koa';
 import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
-import { Component, EventSignature } from 'yaef';
+import { Component, EventAwaiter, EventSignature } from 'yaef';
 
-import { HttpRequest } from './httpEvents';
+import { HttpRequest, HttpResponse } from './httpEvents';
+import { createHttpEventFromKoaContext } from './lib';
 
 export const HttpServerStart = EventSignature('HttpServerStart');
 export const HttpServerReady = EventSignature('HttpServerReady');
 export const HttpServerAddRoute = EventSignature('HttpServerAddRoute', {} as { methods: string[], path: string });
+
+// TODO: extend from a root debug for yaef.http package
+const debug = Debug('HttpServer');
 
 export function HttpServer ({ host, port }: {
   port: number,
@@ -18,33 +23,36 @@ export function HttpServer ({ host, port }: {
     .use(BodyParser())
     .use(router.routes());
 
-  function addRoute ({ methods, path }: { methods: string[], path: string }) {
-    router.register(path, methods, async (ctx, next) => {
-
-      // TODO: write a `waitForEvent` which takes an event sig and returns a promise, has a timeout etc. and callback
-
-      // const { response } = event;
-
-      // if (!response) { return; }
-
-      // ctx.status = response.statusCode;
-      // ctx.body = response.body;
-      // ctx.set(response.headers || {});
-    });
-  }
-
-  /**
-   * TODO:
-   * - How is the best way to do the Route -> Request -> Response lifecycle with events?
-   * - Request `id` ?
-   * - A more complex mediator with replying ?
-   */
-
   return Component({
     name: 'HttpServer',
     observations: [HttpServerStart, HttpServerAddRoute],
     publications: [HttpServerReady, HttpRequest],
   }, (m) => {
+    const waitForEvent = EventAwaiter(m, { timeout: 10000 });
+
+    function addRoute ({ methods, path }: { methods: string[], path: string }) {
+      router.register(path, methods, async (ctx, next) => {
+        const requestEvent = createHttpEventFromKoaContext(ctx);
+
+        m.publish(HttpRequest, requestEvent);
+        debug({ requestEvent });
+
+        try {
+          const responseEvent = await waitForEvent(HttpResponse, ({ id }) => id === requestEvent.id);
+
+          debug({ responseEvent });
+
+          ctx.status = responseEvent.statusCode;
+          ctx.body = responseEvent.body;
+          ctx.set(responseEvent.headers || {});
+        } catch {
+          debug('failure to get response event');
+          ctx.status = 500;
+          ctx.body = 'Internal server error'; // TODO: fix this, make better
+        }
+      });
+    }
+
     m.observe(HttpServerAddRoute, ({ methods, path }) => {
       addRoute({ methods, path });
     });

@@ -1,20 +1,24 @@
 import { IRouterContext } from 'koa-router';
+import { v4 as uuid } from 'uuid';
 
+import { HttpRequest } from './httpEvents';
 import { IHttpMethod, ILambdaHandlerInputArgs } from './types';
 
-export function createEventFromKoa ({
+export function createHttpEventFromKoaContext ({
   request: {
     body, headers, method, path, query,
   },
   params,
 }: IRouterContext) {
-  // return new HttpRequestEvent({
-  //   request: {
-  //     body, headers,
-  //     path, query, params,
-  //     method: method as IHttpMethod,
-  //   },
-  // });
+  const event: typeof HttpRequest = {
+    name: 'HttpRequest',
+    id: uuid(),
+    body, headers,
+    path, query, params,
+    method: method as IHttpMethod,
+  };
+
+  return event;
 }
 
 // export function createLambdaInputFromHttpRequestEvent (
