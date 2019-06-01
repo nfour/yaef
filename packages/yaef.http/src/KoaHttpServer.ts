@@ -36,7 +36,7 @@ export function KoaHttpServer ({ host, port }: {
     .use(BodyParser())
     .use(router.routes());
 
-  let server: import('http').Server;
+  let server: import('http').Server | undefined;
 
   return Component(KoaHttpServerSignature, (m) => {
     const waitForEvent = EventAwaiter(m, { timeout: 10000 });
@@ -49,7 +49,11 @@ export function KoaHttpServer ({ host, port }: {
         debug({ requestEvent });
 
         try {
-          const responseEvent = await waitForEvent(HttpRequestResponse, ({ _eventId: id }) => id === requestEvent._eventId);
+          // Waits for HttpRequestResponse events, and only resolves when the filter matches the id
+          const responseEvent = await waitForEvent(
+            HttpRequestResponse,
+            ({ _eventId: id }) => id === requestEvent._eventId,
+          );
 
           debug({ responseEvent });
 
@@ -65,6 +69,8 @@ export function KoaHttpServer ({ host, port }: {
     }
 
     function stopServer () {
+      if (!server) { return; }
+
       server.close(() => {
         m.publish(KoaHttpServerStopped);
       });
