@@ -27,6 +27,7 @@ export const KoaHttpServerSignature = ComponentSignature('KoaHttpServer', {
   publications: [KoaHttpServerReady, KoaHttpServerStopped, HttpRequest],
 });
 
+// TODO: support params for a Router and Koa instance or constructor
 export function KoaHttpServer ({ host, port }: {
   port: number,
   host: string,
