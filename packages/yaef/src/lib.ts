@@ -76,3 +76,5 @@ export function EventAwaiter<M extends SimpleMediator<any>> (mediator: M, { time
     });
   };
 }
+
+export const CheckEventId = (id: string) => ({ _eventId }: { _eventId: string }) => _eventId === id;

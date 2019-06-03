@@ -46,3 +46,10 @@ export function createHttpEventFromKoaContext ({
 export function formatRoutePathParams (path: string) {
   return path.replace(/\{(\w+)\}/g, ':$1');
 }
+
+export function normalizeHttpHeaders (input: any = {}) {
+  return Object.keys(input).reduce((obj, key) => {
+    obj[key.toLowerCase()] = input[key];
+    return obj;
+  }, {} as any);
+}

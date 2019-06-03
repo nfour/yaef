@@ -10,18 +10,20 @@
     "@types/koa": "^2.0.48",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa-router": "^7.0.40",
+    "@types/qs": "^6.5.3",
     "bluebird": "^3.5.5",
     "cross-fetch": "^3.0.3",
     "debug": "^4.1.1",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
+    "qs": "^6.7.0",
     "uuid": "~3.3.2",
     "yaef": "0.6.0"
   },
   "devDependencies": {
-    "@types/uuid": "~3.4.3",
     "@types/bluebird": "3.5.20",
+    "@types/uuid": "~3.4.3",
     "typescript": "~3.4.5"
   },
   "license": "MIT"
