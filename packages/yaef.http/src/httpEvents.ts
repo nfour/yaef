@@ -12,6 +12,8 @@ export const HttpRequest = EventSignature('HttpRequest', {} as {
   method: IHttpMethod,
 });
 
+export const PrepareHttpRequest = EventSignature('PrepareHttpRequest', {} as typeof HttpRequest);
+
 export const HttpRequestResponse = EventSignature('HttpResponse', {} as {
   _eventId: string;
   statusCode: number;

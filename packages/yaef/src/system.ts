@@ -124,7 +124,7 @@ export function ComponentSignature<
 }
 
 export function EventSignature<In extends Omit<IEventSignature, 'name'>, N extends string = string> (name: N, input?: In) {
-  return { name, ...input || {} } as { name: N } & In;
+  return { name, ...input || {} } as Omit<In, 'name'> & { name: N };
 }
 
 export interface IMediator<Events extends IEventSignatures> {
