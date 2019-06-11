@@ -32,9 +32,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
       const matchEventIdOnEvent = ({ _eventId }: Pick<typeof HttpRequest, '_eventId'>) => _eventId === requestEvent._eventId;
-      const responseEventPromise = waitFor(HttpRequestResponse, matchEventIdOnEvent);
-
-      m.publish(PrepareHttpRequest, requestEvent);
+      const responseEvent = await waitFor(HttpRequestResponse, matchEventIdOnEvent);
 
       /**
        * TODO:
@@ -51,6 +49,8 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
       return responseEvent;
     };
+
+    return handler;
   });
 }
 
