@@ -12,7 +12,7 @@
     "@types/lodash": "^4.14.123",
     "bluebird": "^3.5.3",
     "debug": "^4.1.1",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "supports-color": "^6.1.0",
     "ts-node": "^8.0.3"
   },
