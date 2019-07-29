@@ -11,11 +11,27 @@ export const AwsLambdaHttpHandlerSignature = ComponentSignature('AwsLambdaHttpLa
   publications: [PrepareHttpRequest, HttpRequestResponse, HttpRequest],
 });
 
-export type IAwsLambdaHttpResponse = Pick<typeof HttpRequestResponse, 'body' | 'headers' | 'statusCode'>;
+export type IAwsLambdaHttpResponse = (
+  Partial<Pick<typeof HttpRequestResponse, 'body' | 'headers'>>
+  & Pick<typeof HttpRequestResponse, 'statusCode'>
+);
+
 export type IAwsLambdaHttpHandlerCb = (event: typeof HttpRequest) => Promise<IAwsLambdaHttpResponse> | IAwsLambdaHttpResponse;
 
+/**
+ * For this to work:
+ * - event emitter must accept prioritized observers to support middlewares
+ * - Type must be updated to support workflow (should be self correcting)
+ * - stringify the body based on headers
+ * -
+ *
+ * Additional todo:
+ * - make a wrapper for existing handler funcs to wrap with this component
+ */
 export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
-  return Component(AwsLambdaHttpHandlerSignature, (m) => {
+  let invoke: ILambdaHttpHandler | undefined;
+
+  const component = Component(AwsLambdaHttpHandlerSignature, (m) => {
     const waitFor = EventAwaiter(m, { timeout: 10000 });
 
     async function useHttpRequest (requestEvent: typeof HttpRequest) {
@@ -23,12 +39,17 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
       const { _eventId } = requestEvent;
 
-      return m.publish(HttpRequestResponse, { ...responseObject, _eventId });
+      return m.publish(HttpRequestResponse, {
+        body: undefined,
+        headers: {},
+        ...responseObject,
+        _eventId,
+      });
     }
 
     m.observe(HttpRequest, useHttpRequest);
 
-    const handler: ILambdaHttpHandler = async (inputEvent, context, done) => {
+    invoke = async (inputEvent, context, done) => {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
       const matchEventIdOnEvent = ({ _eventId }: Pick<typeof HttpRequest, '_eventId'>) => _eventId === requestEvent._eventId;
@@ -41,17 +62,28 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
        *   - create a new mediator that can queue event listeners based on declared priority?
        */
 
+      // TODO: do stringifying below to fix type issues
+
       done(null, {
         statusCode: responseEvent.statusCode,
-        body: responseEvent.body,
+        body: responseEvent.body as any,
         headers: responseEvent.headers,
       });
 
-      return responseEvent;
+      return responseEvent as any;
     };
 
-    return handler;
   });
+
+  const handler: ILambdaHttpHandler = (...args) => {
+    if (!invoke) {
+      throw new Error('AwsLambdaHttpHandler component has not yet been initialized, but the handler was invoked');
+    }
+
+    return invoke(...args);
+  };
+
+  return { handler, component };
 }
 
 function createHttpRequestEventFromAwsLambdaEvent (event: IInputLambdaHttpEvent) {
