@@ -47,9 +47,9 @@ export function formatRoutePathParams (path: string) {
   return path.replace(/\{(\w+)\}/g, ':$1');
 }
 
-export function normalizeHttpHeaders (input: any = {}) {
+export function normalizeHttpHeaders (input: { [k: string]: string } = {}) {
   return Object.keys(input).reduce((obj, key) => {
     obj[key.toLowerCase()] = input[key];
     return obj;
-  }, {} as any);
+  }, {} as { [k: string]: string });
 }

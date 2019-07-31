@@ -53,21 +53,17 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
       const matchEventIdOnEvent = ({ _eventId }: Pick<typeof HttpRequest, '_eventId'>) => _eventId === requestEvent._eventId;
+
+      m.publish(HttpRequest, requestEvent);
+
       const responseEvent = await waitFor(HttpRequestResponse, matchEventIdOnEvent);
 
-      /**
-       * TODO:
-       * - need to be able to hook into the request event somehow...
-       *   - create a new mediator which can `await` events?
-       *   - create a new mediator that can queue event listeners based on declared priority?
-       */
-
-      // TODO: do stringifying below to fix type issues
+      const headers = normalizeHttpHeaders(responseEvent.headers);
+      const body = serializeBodyByContentType(responseEvent.body, headers['content-type'] || requestEvent.headers.accept);
 
       done(null, {
+        body, headers,
         statusCode: responseEvent.statusCode,
-        body: responseEvent.body as any,
-        headers: responseEvent.headers,
       });
 
       return responseEvent as any;
@@ -77,7 +73,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
   const handler: ILambdaHttpHandler = (...args) => {
     if (!invoke) {
-      throw new Error('AwsLambdaHttpHandler component has not yet been initialized, but the handler was invoked');
+      throw new Error('AwsLambdaHttpHandler component must be initialized before the handler is invoked');
     }
 
     return invoke(...args);
@@ -99,18 +95,7 @@ function createHttpRequestEventFromAwsLambdaEvent (event: IInputLambdaHttpEvent)
 
   const headers = normalizeHttpHeaders(event.headers);
 
-  const body: IHttpBody = (() => {
-    // If content-type is JSON, try to parse it
-    if (event.body && /\bapplication\/.*json\b/.test(headers['content-type'] || '')) {
-      try {
-        return JSON.parse(event.body);
-      } catch (err) {
-        throw new Error('Malformed JSON body');
-      }
-    }
-
-    return event.body;
-  })();
+  const body: IHttpBody = deserializeBodyByContentType(event.body, headers['content-type']);
 
   const httpRequestEvent: typeof HttpRequest = {
     name: 'HttpRequest',
@@ -120,4 +105,24 @@ function createHttpRequestEventFromAwsLambdaEvent (event: IInputLambdaHttpEvent)
   };
 
   return httpRequestEvent;
+}
+
+function deserializeBodyByContentType (body: any, contentType?: string) {
+  if (body && contentType && /\bapplication\/.*json\b/.test(contentType)) {
+    try {
+      return JSON.parse(body);
+    } catch (err) {
+      throw new Error('Malformed JSON body');
+    }
+  }
+
+  return body;
+}
+
+function serializeBodyByContentType (body: any, contentType?: string) {
+  if (body && contentType && /\bapplication\/.*json\b/.test(contentType)) {
+    return JSON.stringify(body);
+  }
+
+  return body;
 }
