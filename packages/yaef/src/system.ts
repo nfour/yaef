@@ -74,7 +74,6 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
     const observers = this.observers.get(name)!;
 
     // TODO: need to be able to add an observe to a specific placement
-    // TODO: should default to start of stack, not end.
     this.observers.set(name, [{ event, callback }, ...observers]);
   }
 
@@ -91,7 +90,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     const observers = this.observers.get(name)!;
 
-    // TODO: Should be .each()
+    // TODO: Should be .reduce()
     return observers.map(({ callback }) => callback(payload));
   }
 }

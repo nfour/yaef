@@ -1,6 +1,7 @@
 import { delay } from 'bluebird';
-import { ComponentMediator } from 'yaef';
+import { Component, ComponentMediator } from 'yaef';
 
+import { HttpRequest } from '../';
 import { AwsLambdaHttpHandler } from '../AwsLambdaHttpHandler';
 import { IInputLambdaHttpEvent, ILambdaHandler } from '../types';
 
@@ -49,5 +50,41 @@ test('Errors when the component has not been initialized yet handler is called a
   await expect(invokeHandler(handler, dumbLambdaEvent))
     .rejects
     .toThrow('AwsLambdaHttpHandler component must be initialized before the handler is invoked');
+});
 
+test('Can hook into the flow, adding middlewares before and after certain events', async () => {
+  const { handler, component: handlerComponent } = AwsLambdaHttpHandler(async (event) => {
+    await delay(5);
+
+    return {
+      statusCode: 214,
+      body: { foo: 'bar' },
+      headers: {
+        ...event.headers,
+        'content-type': 'application/json',
+      },
+    };
+  });
+
+  const addFooHeader = Component({ name: 'AddFooHeader', observations: [HttpRequest], publications: [] }, (m) => {
+    m.observe(HttpRequest, (event) => {
+      return {
+        ...event,
+        headers: {
+          ...event.headers,
+          foo: 'bar',
+        },
+      };
+    });
+  });
+
+  await ComponentMediator({ components: [handlerComponent, addFooHeader] }).connect();
+
+  const response = await invokeHandler(handler, dumbLambdaEvent);
+
+  expect(response).toEqual(<typeof response> {
+    statusCode: 214,
+    body: JSON.stringify({ foo: 'bar' }),
+    headers: { 'content-type': 'application/json', 'foo': 'bar' },
+  });
 });
