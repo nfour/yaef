@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "reinstall": "yarn oao clean && yarn",
-    "build": "oao all --parallel --tree tsc",
+    "build": "tsc -b .",
     "test": "source ./.env && jest",
     "lint": "tslint packages/**/src/**/*.ts"
   },
