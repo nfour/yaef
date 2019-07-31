@@ -29,7 +29,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
   const component = Component(AwsLambdaHttpHandlerSignature, (m) => {
     const waitFor = EventAwaiter(m, { timeout: 10000 });
 
-    async function useHttpRequest (requestEvent: typeof HttpRequest) {
+    async function onHttpRequest (requestEvent: typeof HttpRequest) {
       const responseObject = await userCallback(requestEvent);
 
       const { _eventId } = requestEvent;
@@ -42,16 +42,18 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
       });
     }
 
-    m.observe(HttpRequest, useHttpRequest);
+    m.observe(HttpRequest, onHttpRequest);
 
     invoke = async (inputEvent, context, done) => {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
       const matchEventIdOnEvent = ({ _eventId }: Pick<typeof HttpRequest, '_eventId'>) => _eventId === requestEvent._eventId;
 
+      const responsePromise = waitFor(HttpRequestResponse, matchEventIdOnEvent);
+
       m.publish(HttpRequest, requestEvent);
 
-      const responseEvent = await waitFor(HttpRequestResponse, matchEventIdOnEvent);
+      const responseEvent = await responsePromise;
 
       const headers = normalizeHttpHeaders(responseEvent.headers);
       const body = serializeBodyByContentType(responseEvent.body, headers['content-type'] || requestEvent.headers.accept);

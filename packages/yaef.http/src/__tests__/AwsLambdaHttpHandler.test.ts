@@ -53,17 +53,9 @@ test('Errors when the component has not been initialized yet handler is called a
 });
 
 test('Can hook into the flow, adding middlewares before and after certain events', async () => {
-  const { handler, component: handlerComponent } = AwsLambdaHttpHandler(async (event) => {
-    await delay(5);
-
-    return {
-      statusCode: 214,
-      body: { foo: 'bar' },
-      headers: {
-        ...event.headers,
-        'content-type': 'application/json',
-      },
-    };
+  const { handler, component: handlerComponent } = AwsLambdaHttpHandler((event) => {
+    // Sends the request headers to the response so we can check them.
+    return { statusCode: 200, headers: event.headers };
   });
 
   const addFooHeader = Component({ name: 'AddFooHeader', observations: [HttpRequest], publications: [] }, (m) => {
@@ -83,8 +75,13 @@ test('Can hook into the flow, adding middlewares before and after certain events
   const response = await invokeHandler(handler, dumbLambdaEvent);
 
   expect(response).toEqual(<typeof response> {
-    statusCode: 214,
-    body: JSON.stringify({ foo: 'bar' }),
-    headers: { 'content-type': 'application/json', 'foo': 'bar' },
+    statusCode: 200,
+    body: undefined,
+    headers: { foo: 'bar' },
   });
 });
+
+// test('Concurrent events are not affected by each other')
+// test('Many sequential events do not interact with each other or middlewares')
+
+// TODO: refine concept of atomic event handlers. Should mutation be unnecessary?
