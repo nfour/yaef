@@ -20,7 +20,6 @@ export type IAwsLambdaHttpHandlerCb = (event: typeof HttpRequest) => Promise<IAw
 
 /**
  * todo:
- * - event emitter must accept prioritized observers to support middlewares
  * - make a wrapper for existing handler funcs to wrap with this component
  */
 export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
@@ -51,7 +50,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
       const responsePromise = waitFor(HttpRequestResponse, matchEventIdOnEvent);
 
-      m.publish(HttpRequest, requestEvent);
+      await m.publish(HttpRequest, requestEvent);
 
       const responseEvent = await responsePromise;
 

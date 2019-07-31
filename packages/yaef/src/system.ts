@@ -1,4 +1,4 @@
-import { map } from 'bluebird';
+import { map, reduce } from 'bluebird';
 
 import { ErrorFromCallPoint } from './lib';
 import { Omit, UnionToIntersection } from './types';
@@ -81,7 +81,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
     event: Es,
     /** This name thing exists because we are being cheeky with props */
     payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
-  ) {
+  ): Es | undefined | any {
     const name = getNameFromEvent(event as IEventShapes);
 
     CheckMediatorEventName(this.constructor.name)(name);
@@ -90,8 +90,38 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     const observers = this.observers.get(name)!;
 
-    // TODO: Should be .reduce()
-    return observers.map(({ callback }) => callback(payload));
+    if (!observers.length) { return; }
+
+    const firstEvent = observers[0].callback(event);
+
+    if (observers.length <= 1) { return firstEvent; }
+
+    return observers.slice(1).reduce(async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
+  }
+}
+
+export class PromisingMediator<Events extends IEventSignatures> extends SimpleMediator<Events> {
+  async publish<Es extends this['Events']['publications']> (
+    event: Es,
+    /** This name thing exists because we are being cheeky with props */
+    payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
+  ): Promise<Es | undefined> {
+    const name = getNameFromEvent(event as IEventShapes);
+
+    CheckMediatorEventName(this.constructor.name)(name);
+
+    if (!this.observers.has(name)) { return; }
+
+    const observers = this.observers.get(name)!;
+
+    if (!observers.length) { return; }
+
+    const firstEvent = await observers[0].callback(event);
+
+    if (observers.length <= 1) { return firstEvent; }
+
+    // TODO: this should be in its own mediator!!
+    return reduce(observers.slice(1), async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
   }
 }
 
