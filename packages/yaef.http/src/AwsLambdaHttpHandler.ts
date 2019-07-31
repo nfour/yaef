@@ -19,13 +19,8 @@ export type IAwsLambdaHttpResponse = (
 export type IAwsLambdaHttpHandlerCb = (event: typeof HttpRequest) => Promise<IAwsLambdaHttpResponse> | IAwsLambdaHttpResponse;
 
 /**
- * For this to work:
+ * todo:
  * - event emitter must accept prioritized observers to support middlewares
- * - Type must be updated to support workflow (should be self correcting)
- * - stringify the body based on headers
- * -
- *
- * Additional todo:
  * - make a wrapper for existing handler funcs to wrap with this component
  */
 export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
