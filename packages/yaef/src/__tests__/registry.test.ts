@@ -6,7 +6,6 @@ import { ComponentMediator } from '../system';
 
 const Foo = { name: 'Foo', a: 1, x: 9 as number } as const;
 class Bar { static b: 1; }
-class Baz { static x: 1; }
 
 test('Can add and retrieve a component to a Registry', async () => {
   const BananaDefinition = { name: 'Banana' as const, observations: [Foo], publications: [Bar] };

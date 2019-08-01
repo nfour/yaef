@@ -96,7 +96,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     if (observers.length <= 1) { return firstEvent; }
 
-    return observers.slice(1).reduce(async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
+    return observers.slice(1).reduce((prevEvent, { callback }) => callback(prevEvent), firstEvent);
   }
 }
 
@@ -120,7 +120,6 @@ export class PromisingMediator<Events extends IEventSignatures> extends SimpleMe
 
     if (observers.length <= 1) { return firstEvent; }
 
-    // TODO: this should be in its own mediator!!
     return reduce(observers.slice(1), async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
   }
 }
@@ -176,7 +175,8 @@ export interface EventTuplesToUnion<E extends IComponentEvents> {
   publications: E['publications'][number];
 }
 
-export interface IEventSignature { readonly name?: string; [k: string]: unknown; }
+// tslint:disable-next-line: interface-over-type-literal
+export type IEventSignature = { readonly name?: string, [k: string]: unknown };
 
 export type IEventShapes = UnionToIntersection<IEventSignature>;
 

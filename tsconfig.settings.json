@@ -5,6 +5,7 @@
     "declaration": true,
     "target": "esnext",
     "module": "commonjs",
+    "suppressImplicitAnyIndexErrors": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
     "declarationMap": true,

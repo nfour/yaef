@@ -26,13 +26,13 @@ export class Registry {
       ? ComponentProxy({ name, components: [...lastComponent.components, component] })
       : ComponentProxy({ name, components: [component] });
 
-    this.components.set(name, nextComponent);
+    this.components.set(name, nextComponent as IComponentProxy<any>);
   }
 
-  get<In extends IComponentSignature> (input: In): IComponentProxy<In> | undefined {
+  get<In extends IComponentSignature> (input: In) {
     const { name } = input;
 
-    return this.components.get(name);
+    return <IComponentProxy<In> | undefined> this.components.get(name);
   }
 }
 

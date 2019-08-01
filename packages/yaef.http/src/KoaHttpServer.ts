@@ -42,7 +42,7 @@ export function KoaHttpServer ({ host, port }: {
   return Component(KoaHttpServerSignature, (m) => {
     const waitForEvent = EventAwaiter(m, { timeout: 10000 });
 
-    function addRoute ({ methods, path }: { methods: string[], path: string }) {
+    function addRoute ({ methods, path }: typeof AddRouteToKoaHttpServer) {
       router.register(path, methods, async (ctx, next) => {
         const requestEvent = createHttpEventFromKoaContext(ctx);
 
