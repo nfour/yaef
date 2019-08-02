@@ -33,12 +33,14 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
       const { _eventId } = requestEvent;
 
-      return m.publish(HttpRequestResponse, {
+      m.publish(HttpRequestResponse, {
         body: undefined,
         headers: {},
         ...responseObject,
         _eventId,
       });
+
+      return requestEvent;
     }
 
     m.observe(HttpRequest, onHttpRequest);
@@ -46,11 +48,11 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
     invoke = async (inputEvent, context, done) => {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
-      const matchEventIdOnEvent = ({ _eventId }: Pick<typeof HttpRequest, '_eventId'>) => _eventId === requestEvent._eventId;
+      const responsePromise = waitFor(HttpRequestResponse, ({ _eventId }) => _eventId === requestEvent._eventId);
 
-      const responsePromise = waitFor(HttpRequestResponse, matchEventIdOnEvent);
+      /** TODO: this is hanging somewhere */
 
-      await m.publish(HttpRequest, requestEvent);
+      m.publish(HttpRequest, requestEvent);
 
       const responseEvent = await responsePromise;
 

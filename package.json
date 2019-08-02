@@ -6,6 +6,7 @@
   "scripts": {
     "reinstall": "yarn oao clean && yarn",
     "build": "tsc -b .",
+    "dev": "yarn build -w",
     "test": "source ./.env && jest",
     "lint": "tslint packages/**/src/**/*.ts"
   },
