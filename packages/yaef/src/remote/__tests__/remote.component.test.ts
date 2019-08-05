@@ -1,7 +1,7 @@
 import { delay, map } from 'bluebird';
 import { resolve } from 'path';
 
-import { ComponentMediator, IMediator } from '../../system';
+import { ComponentMediator } from '../../';
 import { RemoteModuleComponent } from '../remote';
 import { A, apple, banana, BananaDef, C } from './fixtures/components';
 

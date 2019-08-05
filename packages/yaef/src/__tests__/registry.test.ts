@@ -1,8 +1,7 @@
 import { delay } from 'bluebird';
 
-import { Component } from '../';
+import { Component, ComponentMediator } from '../';
 import { Registry } from '../registry';
-import { ComponentMediator } from '../system';
 
 const Foo = { name: 'Foo', a: 1, x: 9 as number } as const;
 class Bar { static b: 1; }

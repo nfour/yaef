@@ -3,7 +3,7 @@ import 'ts-node/register';
 import Debug from 'debug';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
-import { ComponentMediator, IComponent } from '../system';
+import { ComponentMediator, IComponent } from '../';
 import { IMessages } from './types';
 
 const debug = Debug(`RemoteModule Worker ${threadId}`);

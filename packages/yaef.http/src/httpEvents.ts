@@ -14,7 +14,7 @@ export const HttpRequest = EventSignature('HttpRequest', {} as {
 
 export const PrepareHttpRequest = EventSignature('PrepareHttpRequest', {} as typeof HttpRequest);
 
-export const HttpRequestResponse = EventSignature('HttpResponse', {} as {
+export const HttpRequestResponse = EventSignature('HttpRequestResponse', {} as {
   _eventId: string;
   statusCode: number;
   body: unknown,

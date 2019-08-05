@@ -1,7 +1,6 @@
 import { MessagePort } from 'worker_threads';
 
-import { IComponentSignature } from '../';
-import { IEventSignature } from '../system';
+import { IComponentSignature, IEventSignature } from '../';
 
 export interface IRemoteModuleConfig {
   module: { path: string, member: string };

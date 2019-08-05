@@ -1,5 +1,5 @@
+import { Component, ComponentMediator, EventSignature } from '../';
 import { ComponentProxy } from '../registry';
-import { Component, ComponentMediator, EventSignature } from '../system';
 
 test('Can send events to multiple components through a proxy', async () => {
   const X = EventSignature('X');

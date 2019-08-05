@@ -1,4 +1,4 @@
-import { Component } from '../../../system';
+import { Component } from '../../../';
 
 export const A = { name: 'A' };
 export const B = { name: 'B' };

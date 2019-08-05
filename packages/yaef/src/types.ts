@@ -19,3 +19,13 @@ export type UnionToPartialIntersection<U> = (
       ? Partial<I>
       : never
 );
+
+// tslint:disable-next-line: interface-over-type-literal
+export type IEventSignature = { readonly name?: string, [k: string]: unknown };
+
+export type IEventShapes = UnionToIntersection<IEventSignature>;
+
+export interface IEventSignatures {
+  observations: IEventSignature;
+  publications: IEventSignature;
+}

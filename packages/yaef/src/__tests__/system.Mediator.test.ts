@@ -1,7 +1,7 @@
 import { delay } from 'bluebird';
 
+import { Component, ComponentMediator, SimpleMediator } from '../';
 import { EventAwaiter } from '../lib';
-import { Component, ComponentMediator, SimpleMediator } from '../system';
 
 test('Can observe published events', () => {
   const { mediator } = ComponentMediator<any>({ components: [] });

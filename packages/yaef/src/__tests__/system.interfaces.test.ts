@@ -1,4 +1,4 @@
-import { Component, ComponentMediator } from '../system';
+import { Component, ComponentMediator } from '../';
 
 // tslint:disable: no-unused-expression
 
