@@ -1,34 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Start a server and send a request and get a response 1`] = `
-Object {
-  "_eventId": Any<String>,
-  "body": Object {
-    "n": 20,
-  },
-  "headers": Object {
-    "accept": "application/json",
-    "accept-encoding": "gzip,deflate",
-    "connection": "close",
-    "content-length": "8",
-    "content-type": "application/json",
-    "host": "0.0.0.0:9999",
-    "user-agent": "node-fetch/1.0 (+https://github.com/bitinn/node-fetch)",
-  },
-  "method": "POST",
-  "name": "HttpRequest",
-  "params": Object {},
-  "path": "/baz",
-  "query": Object {},
-}
-`;
-
-exports[`Start a server and send a request and get a response 2`] = `
-Object {
-  "nTimes2": 40,
-}
-`;
-
 exports[`Start a server and send a request and get a response then stop the server 1`] = `
 Object {
   "_eventId": Any<String>,

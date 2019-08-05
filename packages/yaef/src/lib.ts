@@ -77,4 +77,5 @@ export function EventAwaiter<M extends SimpleMediator<any>> (mediator: M, { time
   };
 }
 
+// TODO: add generic types
 export const CheckEventId = (id: string) => ({ _eventId }: { _eventId: string }) => _eventId === id;

@@ -7,7 +7,7 @@ import { ErrorFromCallPoint } from './lib';
 /** FIXME: This feels shit */
 const primitiveNames = ['Object', 'Array', 'String', 'Number'];
 
-const CheckMediatorEventName = (from: string) => (name?: string) => {
+const ValidateMediatorEventName = (from: string) => (name?: string) => {
   if (!name || primitiveNames.includes(name)) {
     throw ErrorFromCallPoint({ fromStackPosition: 3 })(
       `[${from}] Cannot observe event, missing unique 'name' property. Got value: ${name}`,
@@ -55,7 +55,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
   observe <Es extends this['Events']['observations']> (event: Es, callback: (event: Es) => any) {
     const name = event.name;
 
-    CheckMediatorEventName(this.constructor.name)(name);
+    ValidateMediatorEventName(this.constructor.name)(name);
 
     /** Set default if not defined */
     if (!this.observers.has(name)) { this.observers.set(name, []); }
@@ -75,7 +75,7 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
   ): Es | undefined | any {
     const name = getNameFromEvent(event as IEventShapes);
 
-    CheckMediatorEventName(this.constructor.name)(name);
+    ValidateMediatorEventName(this.constructor.name)(name);
 
     this.debug(`Publishing event %o ...`, name);
 
@@ -85,13 +85,13 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     if (!observers.length) { return; }
 
-    const firstEvent = observers[0].callback(event);
+    const firstPayload = observers[0].callback(payload);
 
-    if (observers.length <= 1) { return firstEvent; }
+    if (observers.length <= 1) { return firstPayload; }
 
     this.debug(`Published event %o is propagating to observers...`, name);
 
-    const result = observers.slice(1).reduce((prevEvent, { callback }) => callback(prevEvent), firstEvent);
+    const result = observers.slice(1).reduce((prevPayload, { callback }) => callback(prevPayload), firstPayload);
 
     this.debug(`Published event %o result is %O`, name, result);
 
@@ -110,7 +110,7 @@ export class PromisingMediator<Events extends IEventSignatures> extends SimpleMe
   ): Promise<Es | undefined> {
     const name = getNameFromEvent(event as IEventShapes);
 
-    CheckMediatorEventName(this.constructor.name)(name);
+    ValidateMediatorEventName(this.constructor.name)(name);
 
     this.debug(`Publishing event %o ...`, name);
 
@@ -120,13 +120,13 @@ export class PromisingMediator<Events extends IEventSignatures> extends SimpleMe
 
     if (!observers.length) { return; }
 
-    const firstEvent = await observers[0].callback(event);
+    const firstPayload = await observers[0].callback(payload);
 
-    if (observers.length <= 1) { return firstEvent; }
+    if (observers.length <= 1) { return firstPayload; }
 
     this.debug(`Published event %o is propagating to observers...`, name);
 
-    const result = await reduce(observers.slice(1), async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
+    const result = await reduce(observers.slice(1), async (prevPayload, { callback }) => callback(prevPayload), firstPayload);
 
     this.debug(`Published event %o result is %O`, name, result);
 
