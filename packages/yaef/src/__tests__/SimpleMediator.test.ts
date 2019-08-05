@@ -3,13 +3,15 @@ import { delay } from 'bluebird';
 import { Component, ComponentMediator, SimpleMediator } from '../';
 import { EventAwaiter } from '../lib';
 
-test('Can observe published events', () => {
+test('Input is validated correctly', () => {
   const { mediator } = ComponentMediator<any>({ components: [] });
 
   expect(() => mediator.publish({}, {}))
     .toThrowError(`[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: Object`);
+
   expect(() => mediator.observe({}, () => { /** */}))
     .toThrowError(`[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: undefined`);
+
   expect(() => mediator.publish({ name: 'foo' })).not.toThrowError();
   expect(() => mediator.publish(class Foo {})).not.toThrowError();
 
