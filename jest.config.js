@@ -4,5 +4,10 @@ module.exports = {
   testMatch: ["**/*.test.ts"],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  modulePathIgnorePatterns: ["/node_modules/", "/build/"]
+  modulePathIgnorePatterns: ["/node_modules/", "/build/"],
+  globals: {
+    'ts-jest': {
+      tsConfig: require('./tsconfig.settings.json').compilerOptions
+    }
+  }
 };

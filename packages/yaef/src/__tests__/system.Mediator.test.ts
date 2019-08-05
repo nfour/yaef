@@ -6,8 +6,10 @@ import { EventAwaiter } from '../lib';
 test('Can observe published events', () => {
   const { mediator } = ComponentMediator<any>({ components: [] });
 
-  expect(() => mediator.publish({}, {})).toThrowErrorMatchingSnapshot();
-  expect(() => mediator.observe({}, () => { /** */})).toThrowErrorMatchingSnapshot();
+  expect(() => mediator.publish({}, {}))
+    .toThrowError(`[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: Object`);
+  expect(() => mediator.observe({}, () => { /** */}))
+    .toThrowError(`[SimpleMediator] Cannot observe event, missing unique 'name' property. Got value: undefined`);
   expect(() => mediator.publish({ name: 'foo' })).not.toThrowError();
   expect(() => mediator.publish(class Foo {})).not.toThrowError();
 
@@ -62,11 +64,25 @@ describe('SimpleMediator', () => {
 
     mediator.observe(FooEvent, fooEventCb);
     mediator.publish(FooEvent);
+
+    // The state before removing:
+    expect(mediator.observers).toEqual(
+      new Map([
+        ['foo', [{ callback: fooEventCb, event: { name: 'foo' } }]],
+      ]),
+    );
+
     mediator.removeObserver(fooEventCb);
     mediator.publish(FooEvent);
 
     expect(fooEventCb).toBeCalledTimes(1);
-    expect(mediator.observers).toMatchSnapshot();
+
+    // No observers after removing:
+    expect(mediator.observers).toEqual(
+      new Map([
+        ['foo', []],
+      ]),
+    );
   });
 
   test('Can use EventAwaiter to wait for events with promises', async () => {
@@ -82,7 +98,9 @@ describe('SimpleMediator', () => {
 
     const result = await waitForEvent(FooEvent);
 
-    expect(mediator.observers).toMatchSnapshot();
+    // Ensure event observer was removed:
+    expect(mediator.observers).toMatchObject(new Map([['foo', []]]));
+
     expect(result).toEqual({ foo: 999 });
   });
 });
