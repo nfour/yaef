@@ -1,13 +1,8 @@
 import { map } from 'bluebird';
 
 import { IEventSignature, IEventSignatures, Omit } from './';
-import { debug } from './debug';
+import { createDebug, createUniqueId } from './debug';
 import { SimpleMediator } from './mediation';
-
-const log = {
-  Component: debug.extend('Component'),
-  ComponentMediator: debug.extend('ComponentMediator'),
-};
 
 export function Component<
   E extends IComponentSignature
@@ -15,6 +10,8 @@ export function Component<
   input: E,
   callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
+  const debug = createDebug('Component', createUniqueId());
+
   const component = <IComponent<E>> ((mediator) => callback(mediator));
 
   type ComponentPropConstraints = { [K in keyof IComponent<any>]: any };
@@ -26,7 +23,7 @@ export function Component<
     disconnect: { value: () => { /**/ } }, // TODO: make this useful?
   });
 
-  log.Component(`Created ${component.name}`);
+  debug(`New %o`, component.name);
 
   return component;
 }
@@ -35,6 +32,10 @@ export function Component<
  * TODO: Support `Mediator` property, so one can construct from arbitrary IMediator conformant interfaces
  */
 export function ComponentMediator<C extends IComponent<any>> ({ components }: { components: C[] }) {
+  const debug = createDebug(`ComponentMediator`, createUniqueId());
+
+  debug(`New with components: %o`, components.map(({ name }) => name));
+
   /** This should be part of the input as well */
   const mediator = new SimpleMediator<MergeComponentEvents<C>>();
 
@@ -43,13 +44,17 @@ export function ComponentMediator<C extends IComponent<any>> ({ components }: { 
     async connect () {
       // TODO: if anything tries to .publish before this is called, they should get rekt
       // Or it should be buffered, like in `reaco`
+      debug(`Connecting...`);
 
       await map(components, (component) => component(mediator));
 
+      debug(`Connected`);
       return mediator;
     },
     async disconnect () {
+      debug(`Disconnecting...`);
       await map(components, (component) => component.disconnect());
+      debug(`Disconnected`);
     },
   };
 }

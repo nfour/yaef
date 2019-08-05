@@ -10,6 +10,8 @@ const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
 
 jest.setTimeout(10000);
 
+const initialDebugLevel = process.env.DEBUG;
+
 describe('Running components in a worker process', () => {
   /** Used to clean up after tests */
   const containers: Array<ReturnType<typeof ComponentMediator>> = [];
@@ -18,6 +20,8 @@ describe('Running components in a worker process', () => {
     for (const c of containers) { await c.disconnect(); }
 
     containers.splice(0, containers.length); // Empty
+
+    process.env.DEBUG = initialDebugLevel;
   });
 
   test('This tests lifecycle works with regular components', async () => {
@@ -48,6 +52,8 @@ describe('Running components in a worker process', () => {
   });
 
   test('Can send many events to and from a remote component', async () => {
+    process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
+
     const { mediator } = await prepareRemoteBananaCase();
 
     const eventCCalled = jest.fn();
@@ -66,10 +72,10 @@ describe('Running components in a worker process', () => {
   });
 
   test('Can spawn many remote components and exchange many events', async () => {
+    process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
+
     const spawnSize = 5;
-
     const start = Date.now();
-
     const bananas = Array(spawnSize).fill('').map(() => {
       return RemoteModuleComponent(BananaDef, {
         module: { path: bananaComponentPath, member: bananaMember },
@@ -82,7 +88,7 @@ describe('Running components in a worker process', () => {
 
     const mediator = await container.connect();
 
-// tslint:disable-next-line: no-console
+    // tslint:disable-next-line: no-console
     console.log(`Took ${Date.now() - start}ms to initialize ${spawnSize} workers`);
 
     const eventCCalled = jest.fn();

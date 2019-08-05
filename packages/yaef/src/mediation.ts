@@ -1,15 +1,10 @@
 import { reduce } from 'bluebird';
 
 import { IEventShapes, IEventSignatures, Omit } from './';
-import { debug } from './debug';
+import { createDebug, createUniqueId } from './debug';
 import { ErrorFromCallPoint } from './lib';
 
-const log = {
-  SimpleMediator: debug.extend('SimpleMediator'),
-  PromisingMediator: debug.extend('PromisingMediator'),
-};
-
-/** This is gay */
+/** FIXME: This feels shit */
 const primitiveNames = ['Object', 'Array', 'String', 'Number'];
 
 const CheckMediatorEventName = (from: string) => (name?: string) => {
@@ -30,8 +25,14 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
   observers: Map<any, Array<{ event: any, callback: IMediatorEventCallback }>> = new Map();
 
+  protected debug: ReturnType<typeof createDebug>;
+
+  constructor () {
+    this.debug = createDebug(this.constructor.name, createUniqueId());
+  }
+
   /** Add many observers, say, from another mediator */
-  addObservers (observers: SimpleMediator<any>['observers']) {
+  mergeObservers (observers: SimpleMediator<any>['observers']) {
     this.observers = new Map([
       ...this.observers.entries(),
       ...observers.entries(),
@@ -43,6 +44,8 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
       const indexMatch = observers.findIndex(({ callback }) => callback === inputCallback);
 
       if (indexMatch >= 0) {
+        this.debug(`Observer removed for event: %o`, observers[indexMatch].event.name);
+
         // Remove it.
         return observers.splice(indexMatch, 1);
       }
@@ -61,6 +64,8 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     // TODO: need to be able to add an observe to a specific placement
     this.observers.set(name, [{ event, callback }, ...observers]);
+
+    this.debug(`Observer added for event: %o`, name);
   }
 
   publish<Es extends this['Events']['publications']> (
@@ -72,6 +77,8 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     CheckMediatorEventName(this.constructor.name)(name);
 
+    this.debug(`Publishing event %o ...`, name);
+
     if (!this.observers.has(name)) { return; }
 
     const observers = this.observers.get(name)!;
@@ -82,10 +89,19 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
 
     if (observers.length <= 1) { return firstEvent; }
 
-    return observers.slice(1).reduce((prevEvent, { callback }) => callback(prevEvent), firstEvent);
+    this.debug(`Published event %o is propagating to observers...`, name);
+
+    const result = observers.slice(1).reduce((prevEvent, { callback }) => callback(prevEvent), firstEvent);
+
+    this.debug(`Published event %o result is %O`, name, result);
+
+    return result;
   }
 }
 
+/**
+ * SimpleMediator, but publish waits on promises
+ */
 export class PromisingMediator<Events extends IEventSignatures> extends SimpleMediator<Events> {
   async publish<Es extends this['Events']['publications']> (
     event: Es,
@@ -95,6 +111,8 @@ export class PromisingMediator<Events extends IEventSignatures> extends SimpleMe
     const name = getNameFromEvent(event as IEventShapes);
 
     CheckMediatorEventName(this.constructor.name)(name);
+
+    this.debug(`Publishing event %o ...`, name);
 
     if (!this.observers.has(name)) { return; }
 
@@ -106,7 +124,13 @@ export class PromisingMediator<Events extends IEventSignatures> extends SimpleMe
 
     if (observers.length <= 1) { return firstEvent; }
 
-    return reduce(observers.slice(1), async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
+    this.debug(`Published event %o is propagating to observers...`, name);
+
+    const result = await reduce(observers.slice(1), async (prevEvent, { callback }) => callback(prevEvent), firstEvent);
+
+    this.debug(`Published event %o result is %O`, name, result);
+
+    return result;
   }
 }
 
