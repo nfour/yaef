@@ -50,8 +50,6 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
       const responsePromise = waitFor(HttpRequestResponse, ({ _eventId }) => _eventId === requestEvent._eventId);
 
-      /** TODO: this is hanging somewhere */
-
       m.publish(HttpRequest, requestEvent);
 
       const responseEvent = await responsePromise;
@@ -71,6 +69,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
 
   const handler: ILambdaHttpHandler = (...args) => {
     if (!invoke) {
+      // TODO: set the callstack on this error to where the handler is defined
       throw new Error('AwsLambdaHttpHandler component must be initialized before the handler is invoked');
     }
 

@@ -18,14 +18,12 @@ export const AddRouteToKoaHttpServer = EventSignature('AddRouteToKoaHttpServer',
   path: string,
 });
 
-// TODO: extend from a root debug for yaef.http package
-
 export const KoaHttpServerSignature = ComponentSignature('KoaHttpServer', {
   observations: [StartKoaHttpServer, AddRouteToKoaHttpServer, HttpRequestResponse, StopKoaHttpServer],
   publications: [KoaHttpServerReady, KoaHttpServerStopped, HttpRequest],
 });
 
-// TODO: support params for a Router and Koa instance or constructor
+// TODO: support inpt for a Router and Koa instance
 export function KoaHttpServer ({ host, port }: {
   port: number,
   host: string,
@@ -43,18 +41,20 @@ export function KoaHttpServer ({ host, port }: {
     const waitForEvent = EventAwaiter(m, { timeout: 10000 });
 
     function addRoute ({ methods, path }: typeof AddRouteToKoaHttpServer) {
-      debug(`methods: %O, path: %O`, methods, path);
+      debug(`Methods: %O, Path: %O`, methods, path);
+
       router.register(path, methods, async (ctx, next) => {
         const requestEvent = createHttpEventFromKoaContext(ctx);
 
         m.publish(HttpRequest, requestEvent);
+
         debug({ requestEvent });
 
         try {
           // Waits for HttpRequestResponse events, and only resolves when the filter matches the id
           const responseEvent = await waitForEvent(
             HttpRequestResponse,
-            ({ _eventId: id }) => id === requestEvent._eventId,
+            ({ _eventId }) => _eventId === requestEvent._eventId,
           );
 
           debug({ responseEvent });
@@ -62,10 +62,10 @@ export function KoaHttpServer ({ host, port }: {
           ctx.status = responseEvent.statusCode;
           ctx.body = responseEvent.body;
           ctx.set(responseEvent.headers || {});
-        } catch {
-          debug('failure to get response event');
+        } catch (error) {
+          debug('Failure to get response. Error: %O', error);
           ctx.status = 500;
-          ctx.body = 'Internal server error'; // TODO: fix this, make better
+          ctx.body = 'Internal server error'; // TODO: fix this, make better?
         }
       });
     }
