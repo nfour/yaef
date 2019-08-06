@@ -1,6 +1,6 @@
 import { flatten, map, uniqBy } from 'lodash';
 
-import { EventTuplesToUnion, IComponent, IComponentSignature, SimpleMediator } from './';
+import { EventTuplesToUnion, IComponent, IComponentSignature, Mediator } from './';
 
 /**
  * The Registry is responsible for abtracting many Components and allowing lookup by name.
@@ -42,7 +42,7 @@ export function ComponentProxy<
   N extends string = string
 > ({ name, components }: { name: N, components: C[] }) {
   const component = <IComponentProxy<C>> ((mediator) => {
-    components.map((c) => c(mediator));
+    components.forEach((subComponent) => subComponent(mediator));
   });
 
   const publications = flatten(uniqBy(map(components, 'publications'), 'name'));
@@ -63,7 +63,7 @@ export function ComponentProxy<
 
 export interface IComponentProxy<
   In extends IComponentSignature = IComponentSignature,
-  M = SimpleMediator<EventTuplesToUnion<In>>,
+  M = Mediator<EventTuplesToUnion<In>>,
 > extends IComponent<In, M> {
   components: Array<IComponent<In, M>>;
 }

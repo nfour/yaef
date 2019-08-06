@@ -1,14 +1,14 @@
 import { delay } from 'bluebird';
-import Debug from 'debug';
 import { resolve } from 'path';
 import { MessageChannel, Worker } from 'worker_threads';
 
 import { IComponent, IComponentSignature } from '../';
+import { createDebug } from '../debug';
 import { IMessages, IRemoteModuleConfig } from './types';
 
 const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponent.js');
 
-const debug = Debug(`RemoteModule`);
+const debug = createDebug(`RemoteModule`);
 
 export function RemoteModuleComponent<E extends IComponentSignature> (
   eventInput: E,
@@ -70,7 +70,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
 
     eventInput.observations.forEach((event) => {
       mediator.observe(event, (payload) => {
-        debug(`Sending 'observation' ${event.name}`);
+        debug(`Sending observation %o`, event.name);
 
         const message: IMessages['observationMessage'] = { id: 'observation', event, payload };
 

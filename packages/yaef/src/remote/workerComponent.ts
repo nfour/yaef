@@ -1,12 +1,12 @@
 import 'ts-node/register';
 
-import Debug from 'debug';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
 import { ComponentMediator, IComponent } from '../';
+import { createDebug } from '../debug';
 import { IMessages } from './types';
 
-const debug = Debug(`RemoteModule Worker ${threadId}`);
+const debug = createDebug(`RemoteModule Worker ${threadId}`);
 
 void (async () => {
   debug('Awaiting port...');
@@ -35,20 +35,25 @@ void (async () => {
 
   debug('Initializing mediator...');
 
-  const mediator = await ComponentMediator({ components: [component] }).connect();
+  const { connect, disconnect, mediator } = ComponentMediator({ components: [component] });
+
+  await connect();
 
   debug('Mediator initialized.');
 
-  port.on('message', ({ id, event, payload }: IMessages['observationMessage']) => {
+  port.on('message', async ({ id, event, payload }: IMessages['observationMessage']) => {
     if (id !== 'observation') { return; }
 
     mediator.publish(event, payload);
   });
 
-  port.on('message', ({ id }: IMessages['killMessage']) => {
+  port.on('message', async ({ id }: IMessages['killMessage']) => {
     if (id !== 'kill') { return; }
 
     debug('Killing');
+
+    await disconnect();
+
     process.exit(0);
   });
 

@@ -1,6 +1,7 @@
 import { config, delay } from 'bluebird';
 
-import { IEventSignature, SimpleMediator } from './';
+import { IEventSignature } from './';
+import { Mediator } from './mediation';
 
 /** TODO: test me */
 export function ErrorFromCallPoint ({ fromStackPosition }: { fromStackPosition: number }) {
@@ -39,7 +40,7 @@ config({ cancellation: true });
  * const payload = await waitForEvent(MyEvent, (payload) => payload._id === someId)
  * const payload = await waitForEvent(MySingularEvent)
  */
-export function EventAwaiter<M extends SimpleMediator<any>> (mediator: M, { timeout = 5000 }: { timeout?: number } = {}) {
+export function EventAwaiter<M extends Mediator<any>> (mediator: M, { timeout = 5000 }: { timeout?: number } = {}) {
   return function waitForEvent<E extends IEventSignature> (event: E, filterCb?: ((event: E) => boolean)): Promise<E> {
     return new Promise<E>((resolve, reject) => {
       /**

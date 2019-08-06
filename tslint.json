@@ -2,7 +2,8 @@
   "extends": "tslint-config-temando",
   "rules": {
     "interface-name": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "no-floating-promises": false
   },
   "linterOptions": {
     "exclude": ["node_modules", "**/build"]

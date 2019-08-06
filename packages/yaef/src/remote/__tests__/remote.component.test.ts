@@ -64,7 +64,7 @@ describe('Running components in a worker process', () => {
     const concurrency = 100;
     const size = 300;
 
-    await map(Array(size).fill(''), () => mediator.publish(A), { concurrency });
+    await map(Array(size).fill(''), () => { mediator.publish(A); }, { concurrency });
 
     while (eventCCalled.mock.calls.length < size) { await delay(10); }
 
@@ -72,7 +72,7 @@ describe('Running components in a worker process', () => {
   });
 
   test('Can spawn many remote components and exchange many events', async () => {
-    process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
+    // process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
 
     const spawnSize = 5;
     const start = Date.now();
@@ -93,15 +93,15 @@ describe('Running components in a worker process', () => {
 
     const eventCCalled = jest.fn();
 
-    mediator.observe(C, eventCCalled);
+    mediator.observe(C, () => eventCCalled());
 
     const eventEmitSize = 10;
     const expectedCallTimes = eventEmitSize * spawnSize;
 
-    await map(Array(eventEmitSize).fill(''), () => mediator.publish(A));
+    await map(Array(eventEmitSize).fill(''), () => { mediator.publish(A); });
 
     while (eventCCalled.mock.calls.length < expectedCallTimes) {
-      await delay(10);
+      await delay(50);
     }
 
     expect(eventCCalled).toBeCalledTimes(expectedCallTimes);

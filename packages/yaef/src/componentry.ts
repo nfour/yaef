@@ -2,13 +2,13 @@ import { map } from 'bluebird';
 
 import { IEventSignature, IEventSignatures, Omit } from './';
 import { createDebug, createUniqueId } from './debug';
-import { SimpleMediator } from './mediation';
+import { Mediator } from './mediation';
 
 export function Component<
   E extends IComponentSignature
 > (
   input: E,
-  callback: (mediator: SimpleMediator<EventTuplesToUnion<E>>) => void,
+  callback: (mediator: Mediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
   const debug = createDebug('Component', createUniqueId());
 
@@ -29,18 +29,26 @@ export function Component<
 }
 
 /**
- * TODO: Support `Mediator` property, so one can construct from arbitrary IMediator conformant interfaces
+ * Returns a well-typed mediator (an arbitrary IMediator can be provided as input as well)
  */
-export function ComponentMediator<C extends IComponent<any>> ({ components }: { components: C[] }) {
+export function ComponentMediator<
+  C extends IComponent<any>,
+  M extends Mediator<any> = Mediator<any>
+> ({ components, mediator = new Mediator() as any }: { components: C[], mediator?: M }) {
   const debug = createDebug(`ComponentMediator`, createUniqueId());
 
   debug(`New with components: %o`, components.map(({ name }) => name));
 
-  /** This should be part of the input as well */
-  const mediator = new SimpleMediator<MergeComponentEvents<C>>();
+  // TODO: resolve this:
+  type MergedEvents = MergeComponentEvents<C>;
+  type MergedMediator = Mediator<MergedEvents>;
+  type MergedMediator2 = Mediator<{
+    observations: MergedEvents['observations'] | M['Events']['observations']
+    publications: MergedEvents['publications'] | M['Events']['publications'],
+  }>;
 
   return {
-    mediator,
+    mediator: mediator as MergedMediator2,
     async connect () {
       // TODO: if anything tries to .publish before this is called, they should get rekt
       // Or it should be buffered, like in `reaco`
@@ -91,14 +99,14 @@ export interface IComponentEvents<Event extends IEventSignature = IEventSignatur
   publications: Event[];
 }
 
-export type AnonComponent<Events extends IEventSignatures> = (mediator: SimpleMediator<Events>) => void;
+export type AnonComponent<Events extends IEventSignatures> = (mediator: Mediator<Events>) => void;
 
 /**
  * TODO: Need `In['name']` to actually be a literal instead of `string`
  */
 export interface IComponent<
   In extends IComponentSignature = IComponentSignature,
-  M = SimpleMediator<EventTuplesToUnion<In>>, // TODO: support arbitrary mediator signatures, dont couple to Simple
+  M = Mediator<EventTuplesToUnion<In>>,
 > {
   (mediator: M): void | Promise<void>;
 

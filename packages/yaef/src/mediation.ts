@@ -10,7 +10,7 @@ const primitiveNames = ['Object', 'Array', 'String', 'Number'];
 const ValidateMediatorEventName = (from: string) => (name?: string) => {
   if (!name || primitiveNames.includes(name)) {
     throw ErrorFromCallPoint({ fromStackPosition: 3 })(
-      `[${from}] Cannot observe event, missing unique 'name' property. Got value: ${name}`,
+      `[${from}] Cannot observe event, invalid 'name' property: ${name}`,
     );
   }
 };
@@ -19,24 +19,20 @@ const getNameFromEvent = (event: IEventShapes) => event.name || event.constructo
 
 export type IMediatorEventCallback = (event: any) => any;
 
-export class SimpleMediator<Events extends IEventSignatures> implements IMediator<Events> {
+export class Mediator<Events extends IEventSignatures> implements IMediator<Events> {
   /** For storing type information */
   Events!: Events;
 
-  observers: Map<any, Array<{ event: any, callback: IMediatorEventCallback }>> = new Map();
+  observers: IMediator<Events>['observers'] = new Map();
 
-  protected debug: ReturnType<typeof createDebug>;
+  private debug: ReturnType<typeof createDebug>;
+  private validateEventNames: ReturnType<typeof ValidateMediatorEventName>;
 
   constructor () {
     this.debug = createDebug(this.constructor.name, createUniqueId());
-  }
+    this.validateEventNames = ValidateMediatorEventName(this.constructor.name);
 
-  /** Add many observers, say, from another mediator */
-  mergeObservers (observers: SimpleMediator<any>['observers']) {
-    this.observers = new Map([
-      ...this.observers.entries(),
-      ...observers.entries(),
-    ]);
+    this.debug('New');
   }
 
   removeObserver (inputCallback: IMediatorEventCallback) {
@@ -52,91 +48,75 @@ export class SimpleMediator<Events extends IEventSignatures> implements IMediato
     }
   }
 
-  observe <Es extends this['Events']['observations']> (event: Es, callback: (event: Es) => any) {
+  // TODO: need to be able to add an observe to a specific placement based on priority
+  observe <Es extends this['Events']['observations']> (
+    event: Es,
+    callback: (payload: RemoveEventName<typeof event>) => typeof payload | void | Promise<typeof payload | void>,
+  ): void {
     const name = event.name;
 
-    ValidateMediatorEventName(this.constructor.name)(name);
+    this.validateEventNames(name);
 
     /** Set default if not defined */
     if (!this.observers.has(name)) { this.observers.set(name, []); }
 
     const observers = this.observers.get(name)!;
 
-    // TODO: need to be able to add an observe to a specific placement
     this.observers.set(name, [{ event, callback }, ...observers]);
 
-    this.debug(`Observer added for event: %o`, name);
+    this.debug(`Observer added for event %o`, name);
   }
 
-  publish<Es extends this['Events']['publications']> (
+  async publish<Es extends this['Events']['publications']> (
     event: Es,
-    /** This name thing exists because we are being cheeky with props */
-    payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
-  ): Es | undefined | any {
+    /** The event type, without the `name` */
+    payload?: RemoveEventName<typeof event>,
+  ): Promise<typeof payload | undefined> {
     const name = getNameFromEvent(event as IEventShapes);
 
-    ValidateMediatorEventName(this.constructor.name)(name);
+    this.validateEventNames(name);
 
-    this.debug(`Publishing event %o ...`, name);
+    const observers = this.observers.get(name);
 
-    if (!this.observers.has(name)) { return; }
+    if (!observers || !observers.length) {
+      this.debug(`Publishing event %o ignored, no observers`, name);
+      return;
+    }
 
-    const observers = this.observers.get(name)!;
+    this.debug(`Publishing event %o to %o observers...`, name, observers.length);
 
-    if (!observers.length) { return; }
+    const result = await reduceObservers(observers, payload)
+      .catch((error) => this.debug(`Uncaught exception from event %o! %o\n %O`, name, error.message, error));
 
-    const firstPayload = observers[0].callback(payload);
-
-    if (observers.length <= 1) { return firstPayload; }
-
-    this.debug(`Published event %o is propagating to observers...`, name);
-
-    const result = observers.slice(1).reduce((prevPayload, { callback }) => callback(prevPayload), firstPayload);
-
-    this.debug(`Published event %o result is %O`, name, result);
+    this.debug(`Published event %o. Result is %O`, name, result);
 
     return result;
   }
 }
 
 /**
- * SimpleMediator, but publish waits on promises
+ * Skips `undefined` results, using the previous value instead
+ * to finally reduce to the same type (and possibly exact value) as the input payload.
  */
-export class PromisingMediator<Events extends IEventSignatures> extends SimpleMediator<Events> {
-  async publish<Es extends this['Events']['publications']> (
-    event: Es,
-    /** This name thing exists because we are being cheeky with props */
-    payload?: Omit<{ [K in keyof typeof event]: typeof event[K] }, 'name'>,
-  ): Promise<Es | undefined> {
-    const name = getNameFromEvent(event as IEventShapes);
+async function reduceObservers (observers: IObserverList, payload: any) {
+  for (const { callback } of observers) {
+    const nextResult = await callback(payload);
 
-    ValidateMediatorEventName(this.constructor.name)(name);
-
-    this.debug(`Publishing event %o ...`, name);
-
-    if (!this.observers.has(name)) { return; }
-
-    const observers = this.observers.get(name)!;
-
-    if (!observers.length) { return; }
-
-    const firstPayload = await observers[0].callback(payload);
-
-    if (observers.length <= 1) { return firstPayload; }
-
-    this.debug(`Published event %o is propagating to observers...`, name);
-
-    const result = await reduce(observers.slice(1), async (prevPayload, { callback }) => callback(prevPayload), firstPayload);
-
-    this.debug(`Published event %o result is %O`, name, result);
-
-    return result;
+    payload = nextResult === undefined ? payload : nextResult;
   }
+
+  return payload;
 }
+
+export type RemoveEventName<E extends { name?: string }> = Omit<{ [K in keyof E]: E[K] }, 'name'>;
+
+type IObserverList = Array<{ event: any, callback: IMediatorEventCallback }>;
 
 export interface IMediator<Events extends IEventSignatures> {
   Events: Events;
+  observers: Map<any, IObserverList>;
 
+  removeObserver (inputCallback: IMediatorEventCallback): void;
   observe <Es extends this['Events']['observations']> (event: Es, ...args: any[]): any;
   publish <Es extends this['Events']['publications']> (event: Es, payload?: unknown): any;
 }
