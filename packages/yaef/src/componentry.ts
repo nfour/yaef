@@ -39,16 +39,14 @@ export function ComponentMediator<
 
   debug(`New with components: %o`, components.map(({ name }) => name));
 
-  // TODO: resolve this:
   type MergedEvents = MergeComponentEvents<C>;
-  type MergedMediator = Mediator<MergedEvents>;
-  type MergedMediator2 = Mediator<{
+  type MergedMediator = Mediator<{
     observations: MergedEvents['observations'] | M['Events']['observations']
     publications: MergedEvents['publications'] | M['Events']['publications'],
   }>;
 
   return {
-    mediator: mediator as MergedMediator2,
+    mediator: mediator as MergedMediator,
     async connect () {
       // TODO: if anything tries to .publish before this is called, they should get rekt
       // Or it should be buffered, like in `reaco`
