@@ -8,32 +8,35 @@ import { EventTuplesToUnion, IComponent, IComponentSignature, Mediator } from '.
  *
  * TODO: Add type generics to support strongly typed component signatures
  */
-export class Registry {
-  components: Map<IComponentProxy['name'], IComponentProxy> = new Map();
+export function Registry<
+  Sig extends { components: Array<IComponent<any>> }
+> (initialInput: Sig) {
 
-  constructor ({ components }: { components?: Array<IComponent<any>> } = {}) {
-    if (components) {
-      components.forEach((c) => this.add(c));
-    }
-  }
+  const components: Map<IComponentProxy['name'], IComponentProxy> = new Map();
 
-  add <In extends IComponent<any>> (component: In) {
+  function add <In extends IComponent<any>> (component: In) {
     const { name } = component;
 
-    const lastComponent = this.components.get(name);
+    const lastComponent = components.get(name);
 
     const nextComponent = lastComponent
       ? ComponentProxy({ name, components: [...lastComponent.components, component] })
       : ComponentProxy({ name, components: [component] });
 
-    this.components.set(name, nextComponent as IComponentProxy<any>);
+    components.set(name, nextComponent as IComponentProxy<any>);
   }
 
-  get<In extends IComponentSignature> (input: In) {
-    const { name } = input;
+  function get<In extends Pick<Sig['components'][number], 'name' | 'observations' | 'publications'>> (sig: In) {
+    const { name } = sig;
 
-    return <IComponentProxy<In> | undefined> this.components.get(name);
+    return <IComponentProxy<In> | undefined> components.get(name);
   }
+
+  if (initialInput.components) {
+    initialInput.components.forEach(add);
+  }
+
+  return { get, components };
 }
 
 /** Abtract many components to a single component */

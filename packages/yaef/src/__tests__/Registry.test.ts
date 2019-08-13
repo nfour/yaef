@@ -14,9 +14,10 @@ test('Can add and retrieve a component to a Registry', async () => {
     });
   });
 
-  const registry = new Registry({ components: [banana] });
+  const registry = Registry({ components: [banana] });
 
   const reggedBanana = registry.get(BananaDefinition)!;
+  // const diffBanana = registry.get({ name: 'DifferentBanana' as const, observations: [], publications: [Bar] })!; // Should TS error
 
   const mediator = await ComponentMediator({ components: [reggedBanana] }).connect();
 
