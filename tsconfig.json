@@ -3,17 +3,5 @@
   "references": [
     { "path": "packages/yaef" },
     { "path": "packages/yaef.http" },
-  ],
-  "compilerOptions": {
-    "strict": true,
-    "incremental": true,
-    "declaration": true,
-    "target": "esnext",
-    "module": "commonjs",
-    "suppressImplicitAnyIndexErrors": true,
-    "moduleResolution": "node",
-    "downlevelIteration": true,
-    "declarationMap": true,
-    "lib": ["es2018"]
-  }
+  ]
 }
