@@ -1,11 +1,12 @@
 import { Component, ComponentMediator } from '../';
+import { EventSignature } from '../componentry';
 
 // tslint:disable: no-unused-expression
 
 describe('The interfaces fit together', () => {
   // class Foo { static a: 1; }
   const Foo = { name: 'Foo', a: 1, x: 1 as number } as const;
-  class Bar { static b: 3; }
+  const Bar = EventSignature('Bar', { b: 3 } as const);
 
   test('Component', async () => {
     expect(Bar.name).toBe('Bar');

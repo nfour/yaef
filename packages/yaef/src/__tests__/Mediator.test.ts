@@ -1,6 +1,7 @@
 import { delay } from 'bluebird';
 
 import { Component, ComponentMediator, Mediator } from '../';
+import { EventSignature } from '../componentry';
 import { EventAwaiter } from '../lib';
 
 test('Input is validated correctly', async () => {
@@ -13,7 +14,7 @@ test('Input is validated correctly', async () => {
     .toThrowError(`[Mediator] Cannot observe event, invalid 'name' property: Object`);
 
   expect(() => mediator.publish({ name: 'foo' })).not.toThrowError();
-  expect(() => mediator.publish(class Foo {})).not.toThrowError();
+  expect(() => mediator.publish(EventSignature('foo'))).not.toThrowError();
 
   const xEventReceived = jest.fn();
 
@@ -26,7 +27,7 @@ test('Input is validated correctly', async () => {
 
 test('Can mediate events within components', async () => {
   const Foo = { name: 'Foo', a: 1, x: 9 as number } as const;
-  class Bar { static b: 1; }
+  const Bar = EventSignature('Bar', { b: 1 } as const);
 
   const eventBarReceived = jest.fn();
   const eventFooReceived = jest.fn();

@@ -1,10 +1,11 @@
 import { delay } from 'bluebird';
 
 import { Component, ComponentMediator } from '../';
+import { EventSignature } from '../componentry';
 import { Registry } from '../registry';
 
 const Foo = { name: 'Foo', a: 1, x: 9 as number } as const;
-class Bar { static b: 1; }
+const Bar = EventSignature('Bar', { b: 1 } as const);
 
 test('Can add and retrieve a component to a Registry', async () => {
   const BananaDefinition = { name: 'Banana' as const, observations: [Foo], publications: [Bar] };

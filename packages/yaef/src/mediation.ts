@@ -51,7 +51,7 @@ export class Mediator<Events extends IEventSignatures> implements IMediator<Even
   // TODO: need to be able to add an observe to a specific placement based on priority
   observe <Es extends this['Events']['observations']> (
     event: Es,
-    callback: (payload: RemoveEventName<typeof event>) => typeof payload | void | Promise<typeof payload | void>,
+    callback: (payload: typeof event) => typeof payload | void | Promise<typeof payload | void>,
   ): void {
     const name = event.name;
 
@@ -70,8 +70,8 @@ export class Mediator<Events extends IEventSignatures> implements IMediator<Even
   async publish<Es extends this['Events']['publications']> (
     event: Es,
     /** The event type, without the `name` */
-    payload?: RemoveEventName<typeof event>,
-  ): Promise<typeof payload | undefined> {
+    payload?: OptionalEventName<typeof event>,
+  ): Promise<typeof event | undefined> {
     const name = getNameFromEvent(event as IEventShapes);
 
     this.validateEventNames(name);
@@ -85,7 +85,7 @@ export class Mediator<Events extends IEventSignatures> implements IMediator<Even
 
     this.debug(`Publishing event %o to %o observers...`, name, observers.length);
 
-    const result = await reduceObservers(observers, payload)
+    const result = await reduceObservers(observers, { name, ...payload })
       .catch((error) => this.debug(`Uncaught exception from event %o! %o\n %O`, name, error.message, error));
 
     this.debug(`Published event %o. Result is %O`, name, result);
@@ -108,8 +108,7 @@ async function reduceObservers (observers: IObserverList, payload: any) {
   return payload;
 }
 
-export type RemoveEventName<E extends { name?: string }> = Omit<{ [K in keyof E]: E[K] }, 'name'>;
-
+type OptionalEventName<T extends { name?: any }> = Omit<T, 'name'> & { name?: T['name'] extends string ? T['name'] : string };
 type IObserverList = Array<{ event: any, callback: IMediatorEventCallback }>;
 
 export interface IMediator<Events extends IEventSignatures> {
