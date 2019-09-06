@@ -9,7 +9,7 @@ import {
 } from '../KoaHttpServer';
 
 test('Start a server and send a request and get a response then stop the server', async () => {
-  const server = KoaHttpServer({ host: '0.0.0.0', port: 9999 });
+  const server = KoaHttpServer({ host: '0.0.0.0', port: 9119 });
 
   const { connect, mediator } = ComponentMediator({ components: [server] });
 
@@ -24,7 +24,7 @@ test('Start a server and send a request and get a response then stop the server'
   await waitFor(KoaHttpServerReady);
 
   // Hit the server
-  const fetchRequestPromise = fetch(`http://0.0.0.0:9999/baz`, {
+  const fetchRequestPromise = fetch(`http://0.0.0.0:9119/baz`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'accept': 'application/json' },
     body: JSON.stringify({ n: 20 }),

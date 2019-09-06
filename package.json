@@ -16,12 +16,13 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "^24.0.13",
-    "@types/node": "^12.0.2",
-    "jest": "^24.8.0",
-    "oao": "^1.6.0",
-    "ts-jest": "^24.0.2",
-    "tslint": "^5.18.0",
-    "tslint-config-temando": "^1.6.1"
+    "@types/jest": "~24.0.13",
+    "@types/node": "10",
+    "jest": "~24.9.0",
+    "oao": "~1.6.0",
+    "ts-jest": "~24.0.2",
+    "ts-node": "~8.3.0",
+    "tslint": "~5.18.0",
+    "tslint-config-temando": "~1.6.1"
   }
 }

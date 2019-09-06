@@ -104,5 +104,5 @@ test('Can use EventAwaiter to wait for events with promises', async () => {
   // Ensure event observer was removed:
   expect(mediator.observers).toMatchObject(new Map([['foo', []]]));
 
-  expect(result).toEqual({ foo: 999 });
+  expect(result).toMatchObject({ foo: 999 });
 });
