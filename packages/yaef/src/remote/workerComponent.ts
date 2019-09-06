@@ -1,4 +1,5 @@
-import 'ts-node/register';
+// import 'ts-node/register';
+// TODO: fixme, this needsto read the "right" compileroptions or not at all
 
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
