@@ -14,7 +14,11 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   eventInput: E,
   config: IRemoteModuleConfig,
 ): IComponent<E> {
-  const workerData: IMessages['componentWorkerData'] = { eventInput, module: config.module };
+  const workerData: IMessages['componentWorkerData'] = {
+    eventInput,
+    module: config.module,
+  };
+
   const worker = new Worker(workerResolverPath, { workerData });
 
   const { port1: workerPort, port2: workerParentPort } = new MessageChannel();

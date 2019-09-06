@@ -27,3 +27,11 @@ export const banana = Component(BananaDef, (mediator) => {
     mediator.publish(C);
   });
 });
+
+export const simpleAwsLambdaHandlerFunction = (
+  input1: any,
+  input2: any,
+  done: (arg0: undefined, arg1: { statusCode: number; body: any; }) => void,
+) => {
+  done(undefined, { statusCode: 999, body: input1 });
+};

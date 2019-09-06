@@ -3,6 +3,7 @@ import 'ts-node/register';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
 import { ComponentMediator, IComponent } from '../';
+import { Component } from '../componentry';
 import { createDebug } from '../debug';
 import { IMessages } from './types';
 
@@ -27,11 +28,50 @@ void (async () => {
   const {
     eventInput,
     module: { path, member },
+    plainFunction,
   }: IMessages['componentWorkerData'] = workerData;
 
   debug(`Importing ${path}:${member} ...`);
 
-  const component: IComponent<any> = (await import(path))[member];
+  // TODO: abstract to fn
+  const component: IComponent<any> = await (async () => {
+    const imported = (await import(path))[member];
+
+    if (!plainFunction) { return imported; }
+
+    const { eventOnReturn, eventToInvoke, callbackParamIndex, inputEventToParamIndexMap } = plainFunction;
+
+    return Component({
+      name: plainFunction.name,
+      observations: [eventToInvoke],
+      publications: [eventOnReturn],
+    }, (m) => {
+      m.observe(eventToInvoke, async (inputEvent: any) => {
+        const resolveResult = (result: any) => {
+          m.publish(eventOnReturn, result); // TODO: add a separate error event? eventOnError?
+        };
+
+        const params = (() => {
+          if (!inputEventToParamIndexMap) { return [eventToInvoke]; }
+
+          return inputEventToParamIndexMap.map((key) => eventToInvoke[key]);
+        })();
+
+        const callback = callbackParamIndex !== undefined
+          ? (err: Error | undefined, result: any) => { resolveResult(err || result); } // TODO: be less vague
+          : undefined;
+
+        if (callback) {
+          params.splice(callbackParamIndex!, 0, callback);
+
+          const result = await imported(...params);
+          resolveResult(result);
+        } else {
+          await imported(...params);
+        }
+      });
+    });
+  })();
 
   debug('Initializing mediator...');
 

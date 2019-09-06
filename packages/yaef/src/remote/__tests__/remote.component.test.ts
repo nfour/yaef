@@ -1,12 +1,14 @@
 import { delay, map } from 'bluebird';
 import { resolve } from 'path';
 
-import { ComponentMediator } from '../../';
+import { ComponentMediator, EventAwaiter } from '../../';
 import { RemoteModuleComponent } from '../remote';
 import { A, apple, banana, BananaDef, C } from './fixtures/components';
 
+type IValidMembers = keyof typeof import('./fixtures/components');
+
 const bananaComponentPath = resolve(__dirname, './fixtures/components');
-const bananaMember: keyof typeof import('./fixtures/components') = 'banana';
+const bananaMember: IValidMembers = 'banana';
 
 jest.setTimeout(10000);
 
@@ -111,6 +113,43 @@ describe('Running components in a worker process', () => {
   // test('Errors when recursive events are defined');
   // test('Infinite loops with recursive events when the checks are disabled');
   // test('Can load balance between multiple workers');
+
+  test('Can spawn a remote component around a configured plain function', async () => {
+    const InputEvent = { name: 'Input', event: {}, context: {} };
+    const OutputEvent = { name: 'Output', response: {} };
+
+    const simpleAwsHandlerComponent = RemoteModuleComponent(BananaDef, {
+      module: {
+        path: bananaComponentPath,
+        member: <IValidMembers> 'simpleAwsLambdaHandlerFunction',
+      },
+      plainFunction: {
+        name: 'Thingo',
+        eventToInvoke: InputEvent,
+        eventOnReturn: OutputEvent,
+        callbackParamIndex: 2,
+        inputEventToParamIndexMap: ['event', 'context'] as Array<keyof typeof InputEvent>,
+      },
+    });
+
+    const container = ComponentMediator({ components: [simpleAwsHandlerComponent] });
+    containers.push(container);
+
+    const { mediator, connect } = container;
+
+    await connect();
+
+    const waitFor = EventAwaiter(mediator);
+
+    const result = await waitFor(OutputEvent);
+
+    await mediator.publish(InputEvent);
+
+    await delay(100);
+
+    expect(result).toEqual({ statusCode: 999, body: InputEvent.event });
+
+  });
 
   async function prepareRemoteBananaCase () {
     const remoteBananaComponent = RemoteModuleComponent(BananaDef, {
