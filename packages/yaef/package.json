@@ -20,6 +20,9 @@
   "devDependencies": {
     "typescript": "~3.6"
   },
+  "optionalDependencies": {
+    "ts-node": "*"
+  },
   "engines": {
     "node": ">= 10.5.0"
   },

@@ -1,5 +1,4 @@
 import { delay } from 'bluebird';
-import { register as tsNodeRegister } from 'ts-node';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
 import { ComponentMediator, IComponent } from '../';
@@ -36,8 +35,7 @@ void (async () => {
   }: IMessages['componentWorkerData'] = workerData;
 
   if (tsconfig) {
-    debug('Registering ts-node with tsconfig at path %o', tsconfig);
-    tsNodeRegister({ transpileOnly: true, project: tsconfig });
+    await configureTsNodeRegister(tsconfig);
   }
 
   debug('Port acquired');
@@ -87,6 +85,24 @@ void (async () => {
   debug(`Observing events: ${eventInput.observations.map(({ name }) => name)}`);
   debug(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
 })();
+
+async function configureTsNodeRegister (tsconfig: IMessages['componentWorkerData']['tsconfig']) {
+  debug('Registering ts-node with tsconfig at path %o', tsconfig);
+
+  const tsNodeRegister = await (async () => {
+    try {
+      // tslint:disable-next-line: no-implicit-dependencies
+      return (await import('ts-node')).register;
+    } catch { /**/ }
+  })();
+
+  if (!tsNodeRegister) {
+    debug('Could not locate `ts-node` dependency');
+    return;
+  }
+
+  tsNodeRegister({ transpileOnly: true, project: tsconfig });
+}
 
 async function importComponent ({ path, member, plainFunction }: {
   path: string;
