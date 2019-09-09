@@ -1,5 +1,5 @@
+import { Component, ComponentMediator } from '@yaef/core';
 import { delay } from 'bluebird';
-import { Component, ComponentMediator } from 'yaef';
 
 import { HttpRequest } from '../';
 import { AwsLambdaHttpHandler } from '../AwsLambdaHttpHandler';

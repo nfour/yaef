@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/yaef" },
-    { "path": "packages/yaef.http" },
+    { "path": "packages/core" },
+    { "path": "packages/http" },
   ]
 }

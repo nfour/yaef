@@ -1,6 +1,6 @@
 {
-  "name": "yaef.http",
-  "version": "0.7.1",
+  "name": "@yaef/http",
+  "version": "0.1.0",
   "main": "./build",
   "files": [
     "./build"
@@ -19,7 +19,7 @@
     "koa-router": "^7.4.0",
     "qs": "^6.7.0",
     "uuid": "~3.3.2",
-    "yaef": "0.7.1"
+    "@yaef/core": "0.1.0"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.20",

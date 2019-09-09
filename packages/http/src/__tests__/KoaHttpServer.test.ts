@@ -1,6 +1,6 @@
+import { ComponentMediator, EventAwaiter } from '@yaef/core';
 import { delay } from 'bluebird';
 import fetch from 'cross-fetch';
-import { ComponentMediator, EventAwaiter } from 'yaef';
 
 import { HttpRequest, HttpRequestResponse } from '../httpEvents';
 import {

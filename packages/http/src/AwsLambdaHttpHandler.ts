@@ -1,6 +1,6 @@
+import { Component, ComponentSignature, EventAwaiter } from '@yaef/core';
 import * as QueryString from 'qs';
 import { v4 as uuid } from 'uuid';
-import { Component, ComponentSignature, EventAwaiter } from 'yaef';
 
 import { HttpRequest, HttpRequestResponse, PrepareHttpRequest } from './httpEvents';
 import { normalizeHttpHeaders } from './lib';

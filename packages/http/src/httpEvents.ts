@@ -1,4 +1,4 @@
-import { EventSignature } from 'yaef';
+import { EventSignature } from '@yaef/core';
 
 import { IHttpMethod, IStringDict } from './types';
 

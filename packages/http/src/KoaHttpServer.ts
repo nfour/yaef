@@ -1,7 +1,7 @@
+import { Component, ComponentSignature, createDebug, createUniqueId, EventAwaiter, EventSignature } from '@yaef/core';
 import * as Koa from 'koa';
 import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
-import { Component, ComponentSignature, createDebug, createUniqueId, EventAwaiter, EventSignature } from 'yaef';
 
 import { HttpRequest, HttpRequestResponse } from './httpEvents';
 import { createHttpEventFromKoaContext } from './lib';
