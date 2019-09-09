@@ -21,7 +21,7 @@
 It looks something like this:
 
 ```ts
-import { Component, ComponentMediator, ComponentSignature, EventSignature } from 'yaef';
+import { Component, ComponentMediator, ComponentSignature, EventSignature } from '@yaef/core';
 
 type IFruitTypes = 'Apple' | 'Banana';
 
