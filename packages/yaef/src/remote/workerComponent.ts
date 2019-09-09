@@ -97,7 +97,7 @@ async function configureTsNodeRegister (tsconfig: IMessages['componentWorkerData
   })();
 
   if (!tsNodeRegister) {
-    debug('Could not locate `ts-node` dependency');
+    debug('Could not resolve `ts-node` dependency');
     return;
   }
 
