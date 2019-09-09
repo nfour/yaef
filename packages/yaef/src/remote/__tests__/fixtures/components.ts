@@ -1,4 +1,4 @@
-import { Component } from '../../../';
+import { Component, ComponentSignature } from '../../../';
 
 export const A = { name: 'A' };
 export const B = { name: 'B' };
@@ -10,11 +10,10 @@ export const AppleDef = {
   publications: [B],
 };
 
-export const BananaDef = {
-  name: 'Banana',
+export const BananaDef = ComponentSignature('Banana', {
   observations: [B],
   publications: [C],
-};
+});
 
 export const apple = Component(AppleDef, (mediator) => {
   mediator.observe(A, () => {

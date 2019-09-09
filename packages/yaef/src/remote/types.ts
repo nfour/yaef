@@ -6,7 +6,9 @@ export interface IRemoteModuleConfig {
   module: {
     path: string,
     member: string,
+    /** Path to the tsconig which ts-node will use to execute .ts files you define in the `module` */
   };
+  tsconfig?: string; // TODO: make union and use { autoDiscover: true }
   /** When set, the imported function will be wrapped in a component using this as a config */
   plainFunction?: {
     /** The component name */
@@ -33,6 +35,7 @@ export interface IMessages {
     eventInput: IComponentSignature,
     module: IRemoteModuleConfig['module'],
     plainFunction?: IRemoteModuleConfig['plainFunction'],
+    tsconfig?: IRemoteModuleConfig['tsconfig'],
   };
   'observationMessage': { id: 'observation', event: IEventSignature, payload: any };
   'publicationMessage': { id: 'publication', event: IEventSignature, payload: any };

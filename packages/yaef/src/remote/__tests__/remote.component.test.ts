@@ -1,7 +1,7 @@
 import { delay, map } from 'bluebird';
 import { resolve } from 'path';
 
-import { ComponentMediator, EventAwaiter } from '../../';
+import { ComponentMediator, ComponentSignature, EventAwaiter } from '../../';
 import { RemoteModuleComponent } from '../remote';
 import { A, apple, banana, BananaDef, C } from './fixtures/components';
 
@@ -10,7 +10,7 @@ type IValidMembers = keyof typeof import('./fixtures/components');
 const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: IValidMembers = 'banana';
 
-jest.setTimeout(10000);
+jest.setTimeout(5000);
 
 const initialDebugLevel = process.env.DEBUG;
 
@@ -118,11 +118,17 @@ describe('Running components in a worker process', () => {
     const InputEvent = { name: 'Input', event: {}, context: {} };
     const OutputEvent = { name: 'Output', response: {} };
 
-    const simpleAwsHandlerComponent = RemoteModuleComponent(BananaDef, {
+    const HandlerSig = ComponentSignature('LambdaTest', {
+      observations: [InputEvent],
+      publications: [OutputEvent],
+    });
+
+    const simpleAwsHandlerComponent = RemoteModuleComponent(HandlerSig, {
       module: {
         path: bananaComponentPath,
         member: <IValidMembers> 'simpleAwsLambdaHandlerFunction',
       },
+      tsconfig: resolve(__dirname, '../../../tsconfig.json'),
       plainFunction: {
         name: 'Thingo',
         eventToInvoke: InputEvent,
@@ -141,22 +147,18 @@ describe('Running components in a worker process', () => {
 
     const waitFor = EventAwaiter(mediator);
 
+    await mediator.publish(InputEvent, { event: { foo: 1 }, context: {} });
     const result = await waitFor(OutputEvent);
-
-    await mediator.publish(InputEvent);
 
     await delay(100);
 
-    expect(result).toEqual({ statusCode: 999, body: InputEvent.event });
+    expect(result).toMatchObject({ statusCode: 999, body: { foo: 1 } });
 
   });
 
   async function prepareRemoteBananaCase () {
     const remoteBananaComponent = RemoteModuleComponent(BananaDef, {
-      module: {
-        path: bananaComponentPath,
-        member: bananaMember,
-      },
+      module: { path: bananaComponentPath, member: bananaMember },
     });
 
     const container = ComponentMediator({ components: [apple, remoteBananaComponent] });
