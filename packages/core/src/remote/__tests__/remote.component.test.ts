@@ -10,9 +10,11 @@ type IValidMembers = keyof typeof import('./fixtures/components');
 const bananaComponentPath = resolve(__dirname, './fixtures/components');
 const bananaMember: IValidMembers = 'banana';
 
-jest.setTimeout(5000);
+jest.setTimeout(15000);
 
 const initialDebugLevel = process.env.DEBUG;
+
+const TEST_TSCONFIG_PATH = resolve(__dirname, '../../../tsconfig.json');
 
 describe('Running components in a worker process', () => {
   /** Used to clean up after tests */
@@ -81,6 +83,7 @@ describe('Running components in a worker process', () => {
     const bananas = Array(spawnSize).fill('').map(() => {
       return RemoteModuleComponent(BananaDef, {
         module: { path: bananaComponentPath, member: bananaMember },
+        tsconfig: TEST_TSCONFIG_PATH,
       });
     });
 
@@ -128,7 +131,6 @@ describe('Running components in a worker process', () => {
         path: bananaComponentPath,
         member: <IValidMembers> 'simpleAwsLambdaHandlerFunction',
       },
-      tsconfig: resolve(__dirname, '../../../tsconfig.json'),
       plainFunction: {
         name: 'Thingo',
         eventToInvoke: InputEvent,
@@ -136,6 +138,7 @@ describe('Running components in a worker process', () => {
         callbackParamIndex: 2,
         inputEventToParamIndexMap: ['event', 'context'] as Array<keyof typeof InputEvent>,
       },
+      tsconfig: TEST_TSCONFIG_PATH,
     });
 
     const container = ComponentMediator({ components: [simpleAwsHandlerComponent] });
@@ -159,6 +162,7 @@ describe('Running components in a worker process', () => {
   async function prepareRemoteBananaCase () {
     const remoteBananaComponent = RemoteModuleComponent(BananaDef, {
       module: { path: bananaComponentPath, member: bananaMember },
+      tsconfig: TEST_TSCONFIG_PATH,
     });
 
     const container = ComponentMediator({ components: [apple, remoteBananaComponent] });
