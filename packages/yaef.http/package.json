@@ -19,7 +19,7 @@
     "koa-router": "^7.4.0",
     "qs": "^6.7.0",
     "uuid": "~3.3.2",
-    "yaef": "0.6.0"
+    "yaef": "0.7.1"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.20",
