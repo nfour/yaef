@@ -17,18 +17,11 @@ test('Start a server and send a request and get a response then stop the server'
 
   await connect();
 
-  // Tell the server to start
   mediator.publish(AddRouteToKoaHttpServer, { methods: ['POST'], path: '/baz' });
+  // Tell the server to start
   mediator.publish(StartKoaHttpServer);
 
   await waitFor(KoaHttpServerReady);
-
-  // Hit the server
-  const fetchRequestPromise = fetch(`http://0.0.0.0:9119/baz`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'accept': 'application/json' },
-    body: JSON.stringify({ n: 20 }),
-  }).then((res) => res.json());
 
   mediator.observe(HttpRequest, async (request) => {
     await delay(50); // Take some time to build that response
@@ -45,7 +38,12 @@ test('Start a server and send a request and get a response then stop the server'
     });
   });
 
-  const response = await fetchRequestPromise;
+  // Hit the server
+  const response = await fetch(`http://0.0.0.0:9119/baz`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'accept': 'application/json' },
+    body: JSON.stringify({ n: 20 }),
+  }).then((res) => res.json());
 
   mediator.publish(StopKoaHttpServer);
 

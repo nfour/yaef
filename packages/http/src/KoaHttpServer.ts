@@ -19,8 +19,15 @@ export const AddRouteToKoaHttpServer = EventSignature('AddRouteToKoaHttpServer',
 });
 
 export const KoaHttpServerSignature = ComponentSignature('KoaHttpServer', {
-  observations: [StartKoaHttpServer, AddRouteToKoaHttpServer, HttpRequestResponse, StopKoaHttpServer],
-  publications: [KoaHttpServerReady, KoaHttpServerStopped, HttpRequest],
+  observations: [
+    StartKoaHttpServer, StopKoaHttpServer,
+    AddRouteToKoaHttpServer,
+    HttpRequestResponse,
+  ],
+  publications: [
+    KoaHttpServerReady, KoaHttpServerStopped,
+    HttpRequest,
+  ],
 });
 
 // TODO: support inpt for a Router and Koa instance

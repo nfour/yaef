@@ -2,7 +2,7 @@ import { IRouterContext } from 'koa-router';
 import { v4 as uuid } from 'uuid';
 
 import { HttpRequest } from './httpEvents';
-import { IHttpMethod, ILambdaHandlerInputArgs } from './types';
+import { IHttpMethod, IInputLambdaHttpEvent, ILambdaHandlerInputArgs } from './types';
 
 export function createHttpEventFromKoaContext ({
   request: {
@@ -11,8 +11,8 @@ export function createHttpEventFromKoaContext ({
   params,
 }: IRouterContext) {
   const event: typeof HttpRequest = {
-    name: 'HttpRequest',
     _eventId: uuid(),
+    name: 'HttpRequest',
     body, headers,
     path, query, params,
     method: method as IHttpMethod,
@@ -21,24 +21,19 @@ export function createHttpEventFromKoaContext ({
   return event;
 }
 
-// export function createLambdaInputFromHttpRequestEvent (
-//   event: HttpRequestEvent,
-//   done: (err: Error | undefined, response: any) => void,
-// ): ILambdaHandlerInputArgs {
-//   return [
-//     {
-//       body: JSON.stringify(event.request.body),
-//       headers: event.request.headers,
-//       httpMethod: event.request.method,
-//       path: event.request.path,
-//       pathParameters: event.request.params, // TODO:
-//       queryStringParameters: event.request.query,
-//       requestContext: {},
-//     },
-//     {}, // TODO: this needs to mock some stuff we use in service-library
-//     done,
-//   ];
-// }
+export function mapHttpRequestEventToLambdaEvent (
+  event: typeof HttpRequest,
+): IInputLambdaHttpEvent {
+  return {
+    body: JSON.stringify(event.body),
+    headers: event.headers,
+    httpMethod: event.method,
+    path: event.path,
+    pathParameters: event.params,
+    queryStringParameters: event.query,
+    requestContext: {},
+  };
+}
 
 /**
  * Converts /foo/{bar}/baz to /foo/:bar/baz

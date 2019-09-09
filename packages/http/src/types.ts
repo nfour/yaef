@@ -89,6 +89,7 @@ export interface ILambdaHttpDefinition {
   event: IInputLambdaHttpEvent;
   context: IInputLambdaHttpContext;
   response: IHttpRequestResponse;
+  error: Error;
 }
 
 export type ILambdaHttpHandler = ILambdaHandler<ILambdaHttpDefinition>;

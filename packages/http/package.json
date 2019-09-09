@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "./build",
   "files": [
-    "./build"
+    "./build", "./src"
   ],
   "dependencies": {
     "@types/debug": "^4.1.4",
