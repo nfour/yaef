@@ -25,8 +25,8 @@ export class Mediator<Events extends IEventSignatures> implements IMediator<Even
 
   observers: IMediator<Events>['observers'] = new Map();
 
-  private debug: ReturnType<typeof createDebug>;
-  private validateEventNames: ReturnType<typeof ValidateMediatorEventName>;
+  protected debug: ReturnType<typeof createDebug>;
+  protected validateEventNames: ReturnType<typeof ValidateMediatorEventName>;
 
   constructor () {
     this.debug = createDebug(this.constructor.name, createUniqueId());

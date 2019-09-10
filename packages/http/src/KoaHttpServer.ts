@@ -35,7 +35,7 @@ export function KoaHttpServer ({ host, port }: {
   port: number,
   host: string,
 }) {
-  const debug = createDebug('KoaHttpServer', createUniqueId());
+  const debug = createDebug('yaef', 'KoaHttpServer', createUniqueId());
 
   const router = new Router();
   const koa = new Koa()

@@ -6,6 +6,7 @@
     "./build", "./src"
   ],
   "dependencies": {
+    "@yaef/core": "1.0.0",
     "@types/debug": "^4.1.4",
     "@types/koa": "^2.0.48",
     "@types/koa-bodyparser": "^4.3.0",
@@ -18,8 +19,7 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "qs": "^6.7.0",
-    "uuid": "~3.3.2",
-    "@yaef/core": "0.1.0"
+    "uuid": "~3.3.2"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.20",
