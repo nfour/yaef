@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { ComponentMediator, ComponentSignature, EventAwaiter } from '../../';
 import { EventSignature } from '../../componentry';
-import { COMPLETION_CALLBACK, RemoteModuleComponent } from '../remote';
+import { COMPLETION_CALLBACK_SYMBOL, RemoteModuleComponent } from '../remote';
 import { A, apple, banana, BananaDef, C } from './fixtures/components';
 
 type IValidMembers = keyof typeof import('./fixtures/components');
@@ -117,13 +117,16 @@ describe('Running components in a worker process', () => {
   // test('Can load balance between multiple workers');
 
   test('Can spawn a remote component around a configured plain function', async () => {
-    const RequestEvent = EventSignature('RequestEvent', {} as { params: [{ foo: number}, {}, typeof COMPLETION_CALLBACK] });
-    const ResponseEvent = EventSignature('ResponseEvent', {} as { result: any });
-    const ExceptionEvent = EventSignature('ExceptionEvent', {} as { error: any });
+    const RequestEvent = EventSignature('RequestEvent', {} as {
+      _eventId: string,
+      params: [{ foo: number}, {}, typeof COMPLETION_CALLBACK_SYMBOL],
+    });
+    const ResponseEvent = EventSignature('ResponseEvent', {} as { _eventId: string, result: any });
+    const ExceptionEvent = EventSignature('ExceptionEvent', {} as { _eventId: string, error: any });
 
     const HandlerSig = ComponentSignature('LambdaTest', {
       observations: [RequestEvent],
-      publications: [ResponseEvent],
+      publications: [ResponseEvent, ExceptionEvent],
     });
 
     const simpleAwsHandlerComponent = RemoteModuleComponent(HandlerSig, {
@@ -144,13 +147,16 @@ describe('Running components in a worker process', () => {
 
     const waitFor = EventAwaiter(mediator);
 
-    await mediator.publish(RequestEvent, { params: [{ foo: 1 }, {}, COMPLETION_CALLBACK] });
+    await mediator.publish(RequestEvent, { _eventId: 'foobar', params: [{ foo: 1 }, {}, COMPLETION_CALLBACK_SYMBOL] });
 
-    const { result } = await waitFor(ResponseEvent);
+    const response = await waitFor(ResponseEvent);
 
     await delay(100);
 
-    expect(result).toMatchObject({ statusCode: 999, body: { foo: 1 } });
+    expect(response).toMatchObject({
+      _eventId: 'foobar',
+      result: { statusCode: 999, body: { foo: 1 } },
+    });
 
   });
 

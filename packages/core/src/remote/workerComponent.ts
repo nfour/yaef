@@ -3,7 +3,7 @@ import * as findUp from 'findup-sync';
 import { get } from 'lodash';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
-import { COMPLETION_CALLBACK, ComponentMediator, IComponent } from '../';
+import { COMPLETION_CALLBACK_SYMBOL, ComponentMediator, IComponent } from '../';
 import { Component } from '../componentry';
 import { createDebug } from '../debug';
 import { IMessages } from './types';
@@ -129,12 +129,12 @@ async function importComponent ({ name, path, member, plainFunction }: {
     publications: [ExceptionEvent, ResponseEvent],
   }, (m) => {
     m.observe(RequestEvent, async (inputEvent: typeof RequestEvent) => {
-      function resolveResponse (result: any) { m.publish(ResponseEvent, { result }); }
-      function resolveException (error: Error) { m.publish(ExceptionEvent, { error }); }
+      const { params, _eventId } = inputEvent;
 
-      const { params } = inputEvent;
+      function resolveResponse (result: any) { m.publish(ResponseEvent, { _eventId, result }); }
+      function resolveException (error: Error) { m.publish(ExceptionEvent, { _eventId, error }); }
 
-      const hasCallbackInParams = params.indexOf(COMPLETION_CALLBACK) > -1;
+      const hasCallbackInParams = params.indexOf(COMPLETION_CALLBACK_SYMBOL) > -1;
 
       if (hasCallbackInParams) {
         // Resolving using the result of the callback
@@ -144,7 +144,7 @@ async function importComponent ({ name, path, member, plainFunction }: {
         };
 
         const inputParams = params.map((value) =>
-          value === COMPLETION_CALLBACK
+          value === COMPLETION_CALLBACK_SYMBOL
             ? callback
             : value,
         );

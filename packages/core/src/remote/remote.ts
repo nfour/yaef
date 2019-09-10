@@ -11,7 +11,7 @@ const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponen
 const debug = createDebug(`RemoteModule`);
 
 /** Used to define where in a functions parameters a callback should be inserted */
-export const COMPLETION_CALLBACK = 'YAEF_REMOTE_COMPLETE_CALLBACK_SYMBOL';
+export const COMPLETION_CALLBACK_SYMBOL = 'YAEF_REMOTE_COMPLETION_CALLBACK_SYMBOL';
 
 export function RemoteModuleComponent<E extends IComponentSignature> (
   eventInput: E,

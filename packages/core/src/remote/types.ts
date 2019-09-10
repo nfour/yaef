@@ -13,11 +13,11 @@ export interface IRemoteModuleConfig {
   plainFunction?: {
     events: {
       /** This event will invoke the function */
-      RequestEvent: { name?: string, params: unknown[] };
+      RequestEvent: { name?: string, _eventId: string, params: unknown[] };
       /** This event will be published when the function completes */
-      ResponseEvent: { name?: string, result: unknown };
+      ResponseEvent: { name?: string, _eventId: string, result: unknown };
       /** This event will be published if the function errors through the callback */
-      ExceptionEvent: { name?: string, error: unknown };
+      ExceptionEvent: { name?: string, _eventId: string, error: unknown };
     },
   };
 }
