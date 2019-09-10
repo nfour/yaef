@@ -2,7 +2,8 @@ import { delay, map } from 'bluebird';
 import { resolve } from 'path';
 
 import { ComponentMediator, ComponentSignature, EventAwaiter } from '../../';
-import { RemoteModuleComponent } from '../remote';
+import { EventSignature } from '../../componentry';
+import { COMPLETE_CALLBACK_SYMBOL, RemoteModuleComponent } from '../remote';
 import { A, apple, banana, BananaDef, C } from './fixtures/components';
 
 type IValidMembers = keyof typeof import('./fixtures/components');
@@ -13,8 +14,6 @@ const bananaMember: IValidMembers = 'banana';
 jest.setTimeout(15000);
 
 const initialDebugLevel = process.env.DEBUG;
-
-const TEST_TSCONFIG_PATH = resolve(__dirname, '../../../tsconfig.json');
 
 describe('Running components in a worker process', () => {
   /** Used to clean up after tests */
@@ -83,7 +82,7 @@ describe('Running components in a worker process', () => {
     const bananas = Array(spawnSize).fill('').map(() => {
       return RemoteModuleComponent(BananaDef, {
         module: { path: bananaComponentPath, member: bananaMember },
-        tsconfig: TEST_TSCONFIG_PATH,
+        tsconfig: { autoDiscover: true },
       });
     });
 
@@ -118,12 +117,13 @@ describe('Running components in a worker process', () => {
   // test('Can load balance between multiple workers');
 
   test('Can spawn a remote component around a configured plain function', async () => {
-    const InputEvent = { name: 'Input', event: {}, context: {} };
-    const OutputEvent = { name: 'Output', response: {} };
+    const RequestEvent = EventSignature('RequestEvent', {} as { params: [{ foo: number}, {}, typeof COMPLETE_CALLBACK_SYMBOL] });
+    const ResponseEvent = EventSignature('ResponseEvent', {} as { result: any });
+    const ExceptionEvent = EventSignature('ExceptionEvent', {} as { error: any });
 
     const HandlerSig = ComponentSignature('LambdaTest', {
-      observations: [InputEvent],
-      publications: [OutputEvent],
+      observations: [RequestEvent],
+      publications: [ResponseEvent],
     });
 
     const simpleAwsHandlerComponent = RemoteModuleComponent(HandlerSig, {
@@ -131,14 +131,8 @@ describe('Running components in a worker process', () => {
         path: bananaComponentPath,
         member: <IValidMembers> 'simpleAwsLambdaHandlerFunction',
       },
-      plainFunction: {
-        name: 'Thingo',
-        eventToInvoke: InputEvent,
-        eventOnReturn: OutputEvent,
-        callbackParamIndex: 2,
-        inputEventToParamIndexMap: ['event', 'context'] as Array<keyof typeof InputEvent>,
-      },
-      tsconfig: TEST_TSCONFIG_PATH,
+      tsconfig: { autoDiscover: true },
+      plainFunction: { events: { ExceptionEvent, RequestEvent, ResponseEvent } },
     });
 
     const container = ComponentMediator({ components: [simpleAwsHandlerComponent] });
@@ -150,8 +144,9 @@ describe('Running components in a worker process', () => {
 
     const waitFor = EventAwaiter(mediator);
 
-    await mediator.publish(InputEvent, { event: { foo: 1 }, context: {} });
-    const result = await waitFor(OutputEvent);
+    await mediator.publish(RequestEvent, { params: [{ foo: 1 }, {}, COMPLETE_CALLBACK_SYMBOL] });
+
+    const { result } = await waitFor(ResponseEvent);
 
     await delay(100);
 
@@ -162,7 +157,7 @@ describe('Running components in a worker process', () => {
   async function prepareRemoteBananaCase () {
     const remoteBananaComponent = RemoteModuleComponent(BananaDef, {
       module: { path: bananaComponentPath, member: bananaMember },
-      tsconfig: TEST_TSCONFIG_PATH,
+      tsconfig: { autoDiscover: true },
     });
 
     const container = ComponentMediator({ components: [apple, remoteBananaComponent] });

@@ -1,7 +1,9 @@
 import { delay } from 'bluebird';
+import * as findUp from 'findup-sync';
+import { get } from 'lodash';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
-import { ComponentMediator, IComponent } from '../';
+import { COMPLETE_CALLBACK_SYMBOL, ComponentMediator, IComponent } from '../';
 import { Component } from '../componentry';
 import { createDebug } from '../debug';
 import { IMessages } from './types';
@@ -34,14 +36,15 @@ void (async () => {
     tsconfig, plainFunction,
   }: IMessages['componentWorkerData'] = workerData;
 
-  if (tsconfig) {
-    await configureTsNodeRegister(tsconfig);
-  }
+  await configureTsNodeRegister({ tsconfig, fromPath: path });
 
   debug('Port acquired');
   debug(`Importing ${path}:${member} ...`);
 
-  const component = await importComponent({ path, member, plainFunction });
+  const component = await importComponent({
+    path, member, plainFunction,
+    name: eventInput.name,
+  });
 
   debug('Initializing mediator...');
 
@@ -86,25 +89,8 @@ void (async () => {
   debug(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
 })();
 
-async function configureTsNodeRegister (tsconfig: IMessages['componentWorkerData']['tsconfig']) {
-  debug('Registering ts-node with tsconfig at path %o', tsconfig);
-
-  const tsNodeRegister = await (async () => {
-    try {
-      // tslint:disable-next-line: no-implicit-dependencies
-      return (await import('ts-node')).register;
-    } catch { /**/ }
-  })();
-
-  if (!tsNodeRegister) {
-    debug('Could not resolve `ts-node` dependency');
-    return;
-  }
-
-  tsNodeRegister({ transpileOnly: true, project: tsconfig });
-}
-
-async function importComponent ({ path, member, plainFunction }: {
+async function importComponent ({ name, path, member, plainFunction }: {
+  name: string;
   path: string;
   member: string;
   plainFunction?: IMessages['componentWorkerData']['plainFunction'];
@@ -135,39 +121,69 @@ async function importComponent ({ path, member, plainFunction }: {
 
   const handlerFn: (...args: any[]) => any = importValue;
 
-  const { eventOnReturn, eventToInvoke, callbackParamIndex, inputEventToParamIndexMap } = plainFunction;
+  const { events: { ExceptionEvent, RequestEvent, ResponseEvent } } = plainFunction;
 
   return Component({
-    name: plainFunction.name,
-    observations: [eventToInvoke],
-    publications: [eventOnReturn],
+    name,
+    observations: [RequestEvent],
+    publications: [ExceptionEvent, ResponseEvent],
   }, (m) => {
-    m.observe(eventToInvoke, async (inputEvent: typeof eventToInvoke) => {
-      const resolveResult = (res: any) => {
-        m.publish(eventOnReturn, res); // TODO: add a separate error event? eventOnError?
+    m.observe(RequestEvent, async (inputEvent: typeof RequestEvent) => {
+      function resolveResponse (result: any) { m.publish(ResponseEvent, { result }); }
+      function resolveException (error: Error) { m.publish(ExceptionEvent, { error }); }
 
-        return res;
-      };
+      const { params } = inputEvent;
 
-      const params = (() => {
-        if (!inputEventToParamIndexMap) {
-          return [inputEvent];
-        }
-        return inputEventToParamIndexMap.map((key) => inputEvent[key]);
-      })();
+      const hasCallbackInParams = params.indexOf(COMPLETE_CALLBACK_SYMBOL) > -1;
 
-      const callback = callbackParamIndex !== undefined
-        ? (err: Error | undefined, res: any) => { resolveResult(err || res); } // TODO: be less vague
-        : undefined;
+      if (hasCallbackInParams) {
+        // Resolving using the result of the callback
 
-      if (callback) {
-        params.splice(callbackParamIndex!, 0, callback);
+        const callback = (err: Error | undefined, res: any) => {
+          if (err) { resolveException(err); } else { resolveResponse(res); }
+        };
+
+        const inputParams = params.map((value) =>
+          value === COMPLETE_CALLBACK_SYMBOL
+            ? callback
+            : value,
+        );
+
+        await handlerFn(...inputParams);
+      } else {
+        // Resolving using the return value
+
+        await Promise.resolve(handlerFn(...params))
+          .then(resolveResponse)
+          .catch(resolveException);
       }
-
-      const result = await handlerFn(...params);
-
-      return resolveResult(result);
     });
   });
 }
 
+async function configureTsNodeRegister ({ tsconfig, fromPath }: {
+  tsconfig: IMessages['componentWorkerData']['tsconfig'];
+  fromPath: string;
+}) {
+  if (!tsconfig) { return; }
+
+  debug('Registering ts-node with tsconfig at path %o', tsconfig);
+
+  const tsNodeRegister = await (async () => {
+    try {
+      // tslint:disable-next-line: no-implicit-dependencies
+      return (await import('ts-node')).register;
+    } catch { /**/ }
+  })();
+
+  if (!tsNodeRegister) {
+    debug('Could not resolve `ts-node` dependency');
+    return;
+  }
+
+  const project = get(tsconfig, 'autoDiscover') === true
+    ? findUp(`tsconfig.json`, { cwd: fromPath }) || undefined
+    : tsconfig as string;
+
+  tsNodeRegister({ transpileOnly: true, project });
+}
