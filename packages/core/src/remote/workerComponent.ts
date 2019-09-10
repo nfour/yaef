@@ -3,7 +3,7 @@ import * as findUp from 'findup-sync';
 import { get } from 'lodash';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
-import { COMPLETE_CALLBACK_SYMBOL, ComponentMediator, IComponent } from '../';
+import { COMPLETION_CALLBACK, ComponentMediator, IComponent } from '../';
 import { Component } from '../componentry';
 import { createDebug } from '../debug';
 import { IMessages } from './types';
@@ -134,7 +134,7 @@ async function importComponent ({ name, path, member, plainFunction }: {
 
       const { params } = inputEvent;
 
-      const hasCallbackInParams = params.indexOf(COMPLETE_CALLBACK_SYMBOL) > -1;
+      const hasCallbackInParams = params.indexOf(COMPLETION_CALLBACK) > -1;
 
       if (hasCallbackInParams) {
         // Resolving using the result of the callback
@@ -144,7 +144,7 @@ async function importComponent ({ name, path, member, plainFunction }: {
         };
 
         const inputParams = params.map((value) =>
-          value === COMPLETE_CALLBACK_SYMBOL
+          value === COMPLETION_CALLBACK
             ? callback
             : value,
         );
