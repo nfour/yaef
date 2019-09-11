@@ -4,7 +4,7 @@ import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
 
 import { HttpRequest, HttpRequestResponse } from './httpEvents';
-import { createHttpEventFromKoaContext } from './lib';
+import { createHttpEventFromKoaContext, formatUrlPath } from './lib';
 
 // State changes:
 export const KoaHttpServerReady = EventSignature('KoaHttpServerReady');
@@ -31,9 +31,11 @@ export const KoaHttpServerSignature = ComponentSignature('KoaHttpServer', {
 });
 
 // TODO: support inpt for a Router and Koa instance
-export function KoaHttpServer ({ host, port }: {
+export function KoaHttpServer ({ host, port, timeout = 60000 }: {
   port: number,
   host: string,
+  /** In `ms`, duration to wait before timing out a request */
+  timeout?: number;
 }) {
   const debug = createDebug('yaef', 'KoaHttpServer', createUniqueId());
 
@@ -45,13 +47,17 @@ export function KoaHttpServer ({ host, port }: {
   let server: import('http').Server | undefined;
 
   return Component(KoaHttpServerSignature, (m) => {
-    const waitForEvent = EventAwaiter(m, { timeout: 10000 });
+    const waitFor = EventAwaiter(m, { timeout });
 
     function addRoute ({ methods, path }: typeof AddRouteToKoaHttpServer) {
-      debug(`Methods: %O, Path: %O`, methods, path);
+      const formattedPath = formatUrlPath(path);
 
-      router.register(path, methods, async (ctx, next) => {
+      debug(`New Route. %o`, { methods, path: formattedPath });
+
+      router.register(formattedPath, methods, async (ctx, next) => {
         const requestEvent = createHttpEventFromKoaContext(ctx);
+
+        const waitingForResponsePromise = waitFor(HttpRequestResponse, ({ _eventId }) => _eventId === requestEvent._eventId);
 
         m.publish(HttpRequest, requestEvent);
 
@@ -59,10 +65,7 @@ export function KoaHttpServer ({ host, port }: {
 
         try {
           // Waits for HttpRequestResponse events, and only resolves when the filter matches the id
-          const responseEvent = await waitForEvent(
-            HttpRequestResponse,
-            ({ _eventId }) => _eventId === requestEvent._eventId,
-          );
+          const responseEvent = await waitingForResponsePromise;
 
           debug({ responseEvent });
 

@@ -42,6 +42,12 @@ export function formatRoutePathParams (path: string) {
   return path.replace(/\{(\w+)\}/g, ':$1');
 }
 
+export function formatUrlPath (path: string) {
+  return `/${path}`
+    .replace(/\{(\w+)\}/g, ':$1') // From {foo} to :foo for koa-router
+    .replace(/^\/\//, '/'); // Changes // to / at start
+}
+
 export function normalizeHttpHeaders (input: { [k: string]: string } = {}) {
   return Object.keys(input).reduce((obj, key) => {
     obj[key.toLowerCase()] = input[key];
