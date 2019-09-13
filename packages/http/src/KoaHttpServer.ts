@@ -61,13 +61,9 @@ export function KoaHttpServer ({ host, port, timeout = 60000 }: {
 
         m.publish(HttpRequest, requestEvent);
 
-        debug({ requestEvent });
-
         try {
           // Waits for HttpRequestResponse events, and only resolves when the filter matches the id
           const responseEvent = await waitingForResponsePromise;
-
-          debug({ responseEvent });
 
           ctx.status = responseEvent.statusCode;
           ctx.body = responseEvent.body;
