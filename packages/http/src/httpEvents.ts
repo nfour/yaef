@@ -6,7 +6,10 @@ export const HttpRequest = EventSignature('HttpRequest', {} as {
   _eventId: string;
   body: any,
   headers: IStringDict,
+  /** @example /foo/1237929/bar */
   path: string,
+  /** @example /foo/:id/bar */
+  resource: string;
   query: IStringDict,
   params: IStringDict,
   method: IHttpMethod,

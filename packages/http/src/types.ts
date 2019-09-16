@@ -58,6 +58,7 @@ export interface IInputLambdaHttpEvent {
   requestContext: { [key: string]: any };
   body: string;
   path: string;
+  resource: string;
 }
 
 export interface IInputLambdaHttpContext {

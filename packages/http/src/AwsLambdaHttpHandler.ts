@@ -3,7 +3,7 @@ import * as QueryString from 'qs';
 import { v4 as uuid } from 'uuid';
 
 import { HttpRequest, HttpRequestResponse, PrepareHttpRequest } from './httpEvents';
-import { normalizeHttpHeaders } from './lib';
+import { normalizeHttpHeaders, normalizeUrlPath } from './lib';
 import { IHttpBody, IInputLambdaHttpEvent, ILambdaHttpHandler } from './types';
 
 export const AwsLambdaHttpHandlerSignature = ComponentSignature('AwsLambdaHttpLambda', {
@@ -84,6 +84,7 @@ function createHttpRequestEventFromAwsLambdaEvent (event: IInputLambdaHttpEvent)
     pathParameters: params,
     httpMethod: method,
     path,
+    resource,
   } = event;
 
   const query = QueryString.parse(
@@ -97,6 +98,7 @@ function createHttpRequestEventFromAwsLambdaEvent (event: IInputLambdaHttpEvent)
   const httpRequestEvent: typeof HttpRequest = {
     name: 'HttpRequest',
     _eventId: uuid(),
+    resource: normalizeUrlPath(resource),
     headers, query, params,
     body, method, path,
   };

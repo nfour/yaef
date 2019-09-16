@@ -4,45 +4,42 @@ import { v4 as uuid } from 'uuid';
 import { HttpRequest } from './httpEvents';
 import { IHttpMethod, IInputLambdaHttpEvent, ILambdaHandlerInputArgs } from './types';
 
-export function createHttpEventFromKoaContext ({
-  request: {
-    body, headers, method, path, query,
-  },
-  params,
-}: IRouterContext) {
+export function createHttpEventFromKoaContext (
+  {
+    request: { body, headers, method, path, query },
+    params,
+  }: IRouterContext,
+  { resource }: { resource: string},
+) {
   const event: typeof HttpRequest = {
     _eventId: uuid(),
     name: 'HttpRequest',
+    method: method as IHttpMethod,
+    resource: normalizeUrlPath(resource),
     body, headers,
     path, query, params,
-    method: method as IHttpMethod,
   };
 
   return event;
 }
 
 export function mapHttpRequestEventToLambdaEvent (
-  event: typeof HttpRequest,
+  e: typeof HttpRequest,
 ): IInputLambdaHttpEvent {
   return {
-    body: JSON.stringify(event.body),
-    headers: event.headers,
-    httpMethod: event.method,
-    path: event.path,
-    pathParameters: event.params,
-    queryStringParameters: event.query,
+    body: JSON.stringify(e.body),
+    headers: e.headers,
+    httpMethod: e.method,
+    path: e.path,
+    pathParameters: e.params,
+    queryStringParameters: e.query,
+    resource: normalizeUrlPath(e.resource),
     requestContext: {},
   };
 }
 
-/**
- * Converts /foo/{bar}/baz to /foo/:bar/baz
- */
-export function formatRoutePathParams (path: string) {
-  return path.replace(/\{(\w+)\}/g, ':$1');
-}
-
-export function formatUrlPath (path: string) {
+/** Formats from LambdaHttp's `/foo/{bar}/baz` to Koa router's `/foo/:bar/baz` */
+export function normalizeUrlPath (path: string) {
   return `/${path}`
     .replace(/\{(\w+)\}/g, ':$1') // From {foo} to :foo for koa-router
     .replace(/^\/\//, '/'); // Changes // to / at start

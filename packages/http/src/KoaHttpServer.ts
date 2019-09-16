@@ -4,7 +4,7 @@ import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
 
 import { HttpRequest, HttpRequestResponse } from './httpEvents';
-import { createHttpEventFromKoaContext, formatUrlPath } from './lib';
+import { createHttpEventFromKoaContext, normalizeUrlPath } from './lib';
 
 // State changes:
 export const KoaHttpServerReady = EventSignature('KoaHttpServerReady');
@@ -50,12 +50,12 @@ export function KoaHttpServer ({ host, port, timeout = 60000 }: {
     const waitFor = EventAwaiter(m, { timeout });
 
     function addRoute ({ methods, path }: typeof AddRouteToKoaHttpServer) {
-      const formattedPath = formatUrlPath(path);
+      const resource = normalizeUrlPath(path);
 
-      debug(`New Route. %o`, { methods, path: formattedPath });
+      debug(`New Route. %o`, { methods, path: resource });
 
-      router.register(formattedPath, methods, async (ctx, next) => {
-        const requestEvent = createHttpEventFromKoaContext(ctx);
+      router.register(resource, methods, async (ctx, next) => {
+        const requestEvent = createHttpEventFromKoaContext(ctx, { resource });
 
         const waitingForResponsePromise = waitFor(HttpRequestResponse, ({ _eventId }) => _eventId === requestEvent._eventId);
 
@@ -70,8 +70,7 @@ export function KoaHttpServer ({ host, port, timeout = 60000 }: {
           ctx.set(responseEvent.headers || {});
         } catch (error) {
           debug('Failure to get response. Error: %O', error);
-          ctx.status = 500;
-          ctx.body = 'Internal server error'; // TODO: fix this, make better?
+          ctx.throw(500, 'Internal server error');
         }
       });
     }

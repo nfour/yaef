@@ -131,8 +131,8 @@ async function importComponent ({ name, path, member, plainFunction }: {
     m.observe(RequestEvent, async (inputEvent: typeof RequestEvent) => {
       const { params, _eventId } = inputEvent;
 
-      function resolveResponse (result: any) { m.publish(ResponseEvent, { _eventId, result }); }
-      function resolveException (error: Error) { m.publish(ExceptionEvent, { _eventId, error }); }
+      const resolveResponse = (result: any) => m.publish(ResponseEvent, { _eventId, result });
+      const resolveException = (error: Error) => m.publish(ExceptionEvent, { _eventId, error });
 
       const hasCallbackInParams = params.indexOf(COMPLETION_CALLBACK_SYMBOL) > -1;
 
@@ -140,7 +140,9 @@ async function importComponent ({ name, path, member, plainFunction }: {
         // Resolving using the result of the callback
 
         const callback = (err: Error | undefined, res: any) => {
-          if (err) { resolveException(err); } else { resolveResponse(res); }
+          return err
+            ? resolveException(err)
+            : resolveResponse(res);
         };
 
         const inputParams = params.map((value) =>

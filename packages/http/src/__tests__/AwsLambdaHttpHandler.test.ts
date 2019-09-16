@@ -10,6 +10,7 @@ const dumbLambdaEvent: IInputLambdaHttpEvent = {
   headers: {},
   httpMethod: 'GET',
   path: '/',
+  resource: '/',
   pathParameters: {},
   queryStringParameters: {},
   requestContext: {},
