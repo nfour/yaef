@@ -48,7 +48,7 @@ export function AwsLambdaHttpHandler (userCallback: IAwsLambdaHttpHandlerCb) {
     invoke = async (inputEvent, context, done) => {
       const requestEvent = createHttpRequestEventFromAwsLambdaEvent(inputEvent);
 
-      const responsePromise = waitFor(HttpRequestResponse, ({ _eventId }) => _eventId === requestEvent._eventId);
+      const responsePromise = waitFor(HttpRequestResponse, { _eventId: requestEvent._eventId });
 
       m.publish(HttpRequest, requestEvent);
 
