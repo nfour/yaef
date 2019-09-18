@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "reinstall": "yarn oao clean && yarn",
+    "bootstrap": "yarn oao bootstrap",
     "build": "tsc -b .",
     "dev": "yarn build -w",
     "test": "source ./.env && jest",
