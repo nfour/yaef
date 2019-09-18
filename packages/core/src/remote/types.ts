@@ -11,6 +11,11 @@ export interface IRemoteModuleConfig {
   tsconfig?: string | { autoDiscover: true };
   /** When set, the imported function will be wrapped in a component using this as a config */
   plainFunction?: {
+    /**
+     * If true, the path will be imported immediately instead of when a RequestEvent comes in.
+     * This being set increases startup cost but removes a delay on first-call
+     */
+    preload?: boolean;
     events: {
       /** This event will invoke the function */
       RequestEvent: { name?: string, _eventId: string, params: unknown[] };

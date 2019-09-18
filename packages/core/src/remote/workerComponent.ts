@@ -95,7 +95,7 @@ async function importComponent ({ name, path, member, plainFunction }: {
   member: string;
   plainFunction?: IMessages['componentWorkerData']['plainFunction'];
 }): Promise<IComponent<any>> {
-  const importValue = await (async () => {
+  async function getImport () {
     try {
       const importedModule = await import(path);
       const moduleMember = importedModule[member];
@@ -110,16 +110,18 @@ async function importComponent ({ name, path, member, plainFunction }: {
       debug(`Failure to import module at path %o`, path);
       return earlyExit(1);
     }
-  })();
+  }
 
   if (!plainFunction) {
     debug('Using module import as component');
-    return importValue;
+    return getImport();
   }
 
   debug('Using module import as wrapper component fn');
 
-  const handlerFn: (...args: any[]) => any = importValue;
+  const handlerFn: (...args: any[]) => Promise<any> = plainFunction.preload
+    ? await getImport()
+    : (...args: any[]) => getImport().then((fn) => fn(...args));
 
   const { events: { ExceptionEvent, RequestEvent, ResponseEvent } } = plainFunction;
 
