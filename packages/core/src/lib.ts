@@ -50,7 +50,6 @@ export { BluebirdPromise };
  * const payload = await waitForEvent(MySingularEvent)
  */
 export function EventAwaiter<M extends Mediator<any>> (mediator: M, { timeout = 5000 }: { timeout?: number } = {}) {
-
   return function waitForEvent<E extends IEventSignature> (event: E, filter?: IEventFilter<E>) {
     /** This type is used to prevent bluebird type export issues in TypeScript */
     type ICancelablePromise = Promise<E> & { cancel (): void };
@@ -89,11 +88,11 @@ export function EventAwaiter<M extends Mediator<any>> (mediator: M, { timeout = 
       const observeCb = (payload: any) => {
         if (isCompleted) { return; }
 
-        const isFilteredIn = filterFn
+        const passesFilterCheck = filterFn
           ? filterFn(payload)
           : true;
 
-        if (!isFilteredIn) { return; }
+        if (!passesFilterCheck) { return; }
 
         cancel();
         resolve(payload);
@@ -106,7 +105,7 @@ export function EventAwaiter<M extends Mediator<any>> (mediator: M, { timeout = 
           if (isCompleted) { return; }
 
           complete();
-          reject(new Error(`Timed out waiting for event: ${JSON.stringify(event, null, 2)}`));
+          reject(new Error(`EventAwaiter timed out waiting for event: ${JSON.stringify(event, null, 2)}`));
         });
     });
   };
