@@ -21,7 +21,13 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   eventInput: E,
   config: IRemoteModuleConfig,
 ): IComponent<E> {
-  const workerData: IMessages['componentWorkerData'] = { eventInput, ...config };
+  const workerData: IMessages['componentWorkerData'] = {
+    eventInput: {
+      ...eventInput,
+      publications: [...eventInput.publications, RestartRemoteModuleWorker],
+    },
+    ...config,
+  };
 
   function createWorker () {
     const worker = new Worker(workerResolverPath, { workerData });
@@ -57,22 +63,20 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   }
 
   async function killWorker () {
-    const { workerParentPort, workerPort, worker } = activeWorker;
-
     debug('Killing worker...');
 
     /** Make sure after time, terminate */
     const timedExecution = delay(500).then(() => {
-      workerPort.close();
-      workerParentPort.close();
+      activeWorker.workerPort.close();
+      activeWorker.workerParentPort.close();
 
-      return worker.terminate();
+      return activeWorker.worker.terminate();
     });
 
     /** Ask the worker to commit soduku */
     await new Promise((r) => {
-      workerPort.postMessage({ id: 'kill' });
-      workerPort.on('close', r);
+      activeWorker.workerPort.postMessage({ id: 'kill' });
+      activeWorker.workerPort.on('close', r);
     });
 
     // Just making sure.
@@ -80,6 +84,18 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   }
 
   async function connectComponentToWorker (mediator: Mediator<any>) {
+    async function restartWorker () {
+      // TODO: this is not working
+      debug('Restarting Remote Module Worker...');
+
+      await killWorker();
+
+      /** Sets the new worker config by mutating the reference */
+      activeWorker = createWorker();
+
+      establishConnectionToWorker();
+    }
+
     async function establishConnectionToWorker () {
       debug('Awaiting component ready...');
 
@@ -92,6 +108,11 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
 
         debug(`Worker 'publication' ${event.name}`);
 
+        /** This event is internal so we handle it outside of the `mediator` */
+        if (event.name === RestartRemoteModuleWorker.name) {
+          return restartWorker();
+        }
+
         mediator.publish(event, payload);
       });
     }
@@ -101,20 +122,12 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
         debug(`Sending observation %o`, event.name);
 
         const message: IMessages['observationMessage'] = { id: 'observation', event, payload };
+
         activeWorker.workerPort.postMessage(message);
       });
     });
 
-    mediator.observe(RestartRemoteModuleWorker, async () => {
-      debug('Restarting Remote Module Worker...');
-
-      await killWorker();
-
-      /** Sets the new worker config by mutating the reference */
-      activeWorker = createWorker();
-
-      await establishConnectionToWorker();
-    });
+    establishConnectionToWorker();
   }
 
   /** This is `let` so that configuration and listeners do not have to be reestablished on restart */

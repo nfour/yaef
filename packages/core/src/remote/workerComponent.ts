@@ -41,10 +41,12 @@ void (async () => {
     /** To prevent multiple events */
     let isBeingRestarted = false;
 
-    return async () => {
+    return async (filePath: string) => {
       if (isBeingRestarted) { return; }
 
       isBeingRestarted = true;
+
+      debug('Change detected in file, restarting worker... %o', filePath);
 
       await mediator.publish(RestartRemoteModuleWorker);
     };
@@ -81,21 +83,24 @@ void (async () => {
 
   eventInput.publications.forEach((event) => {
     mediator.observe(event, (payload) => {
-      const publicationMessage: IMessages['publicationMessage'] = {
+      const message: IMessages['publicationMessage'] = {
         event, payload,
         id: 'publication',
       };
 
-      port.postMessage(publicationMessage);
+      debug('Sending message %O', message);
+
+      port.postMessage(message);
     });
   });
 
   const readyMessage: IMessages['readyMessage'] = { id: 'ready' };
+
   port.postMessage(readyMessage);
 
   debug('Ready');
-  debug(`Observing events: ${eventInput.observations.map(({ name }) => name)}`);
-  debug(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
+  debug(`Observing events: ${eventInput.observations.map(({ name }) => name).join(', ')}`);
+  debug(`Publishing events: ${eventInput.publications.map(({ name }) => name).join(', ')}`);
 })();
 
 async function importComponent ({ name, path, member, plainFunction, onFileChange }: {
@@ -103,7 +108,7 @@ async function importComponent ({ name, path, member, plainFunction, onFileChang
   path: string;
   member: string;
   plainFunction?: IMessages['componentWorkerData']['plainFunction'];
-  onFileChange?: (events: any[]) => void
+  onFileChange?: (filePath: string) => void
 }): Promise<IComponent<any>> {
   async function getImport () {
     try {
@@ -116,17 +121,27 @@ async function importComponent ({ name, path, member, plainFunction, onFileChang
       }
 
       if (onFileChange) {
-        const { default: nsfw } = await import('nsfw');
+        const FileWatcher = await import('filewatcher');
 
         const loadedFiles = Object.keys(require.cache);
-        loadedFiles.forEach(() => {
-          nsfw(path, onFileChange, { debounceMS: 500 });
+
+        const watcher = FileWatcher({ debounce: 500 });
+
+        // TODO: add an option to provide `excludes`, an array of regex patterns to filter the watch list down to.
+        debug('Will reload when loaded files change');
+
+        watcher.on('change', (filePath) => {
+          onFileChange(filePath);
+          watcher.removeAll();
         });
+
+        loadedFiles.forEach((filePath) => { watcher.add(filePath); });
       }
 
       return moduleMember;
     } catch (err) {
       debug(`Failure to import module at path %o`, path);
+      debug(err);
       return earlyExit(1);
     }
   }
@@ -190,8 +205,6 @@ async function configureTsNodeRegister ({ tsconfig, fromPath }: {
 }) {
   if (!tsconfig) { return; }
 
-  debug('Registering ts-node with tsconfig at path %o', tsconfig);
-
   const tsNodeRegister = await (async () => {
     try {
       // tslint:disable-next-line: no-implicit-dependencies
@@ -200,7 +213,7 @@ async function configureTsNodeRegister ({ tsconfig, fromPath }: {
   })();
 
   if (!tsNodeRegister) {
-    debug('Could not resolve `ts-node` dependency');
+    debug('Exception while registering ts-node: Could not find `ts-node` dependency');
     return;
   }
 

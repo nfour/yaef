@@ -1,3 +1,22 @@
+declare module 'filewatcher' {
+  type IEvents = 'change' | 'fallback';
+  interface IOptions { forcePolling: boolean; debounce: number; interval: number; persistent: boolean; }
+
+  class FileWatcher {
+    add (path: string): this;
+    remove (path: string): this;
+
+    on (name: 'change', cb: (filePath: string, stat: any) => any): this;
+    on (name: 'fallback', cb: (limit: number) => any): this;
+
+    removeAll (): this;
+  }
+
+  function factory (options?: Partial<IOptions>): FileWatcher;
+
+  export = factory;
+}
+
 declare module 'nsfw' {
   interface NsfwFunction {
     (watchPath: string, eventCallback: (events: FileChangeEvent[]) => void, options?: Partial<Options>): Promise<NSFW>;
