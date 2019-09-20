@@ -85,7 +85,6 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
 
   async function connectComponentToWorker (mediator: Mediator<any>) {
     async function restartWorker () {
-      // TODO: this is not working
       debug('Restarting Remote Module Worker...');
 
       await killWorker();
