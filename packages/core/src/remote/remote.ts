@@ -3,7 +3,9 @@ import { resolve } from 'path';
 import { MessageChannel, Worker } from 'worker_threads';
 
 import { IComponent, IComponentSignature } from '../';
+import { EventSignature } from '../componentry';
 import { createDebug } from '../debug';
+import { Mediator } from '../mediation';
 import { IMessages, IRemoteModuleConfig } from './types';
 
 const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponent.js');
@@ -13,83 +15,115 @@ const debug = createDebug(`RemoteModule`);
 /** Used to define where in a functions parameters a callback should be inserted */
 export const COMPLETION_CALLBACK_SYMBOL = 'YAEF_REMOTE_COMPLETION_CALLBACK_SYMBOL';
 
+export const RestartRemoteModuleWorker = EventSignature('RestartRemoteModuleWorker');
+
 export function RemoteModuleComponent<E extends IComponentSignature> (
   eventInput: E,
   config: IRemoteModuleConfig,
 ): IComponent<E> {
   const workerData: IMessages['componentWorkerData'] = { eventInput, ...config };
 
-  const worker = new Worker(workerResolverPath, { workerData });
+  function createWorker () {
+    const worker = new Worker(workerResolverPath, { workerData });
 
-  const { port1: workerPort, port2: workerParentPort } = new MessageChannel();
+    debug('Creating worker...');
 
-  const isReady = new Promise(async (done) => {
-    debug('Awaiting worker online...');
+    const { port1: workerPort, port2: workerParentPort } = new MessageChannel();
 
-    await new Promise((isOnline) => {
-      worker.once('online', isOnline);
-    });
-
-    debug('Worker online');
-    debug(`Emitting 'port'...`);
-
-    const portMessage: IMessages['portMessage'] = { id: 'port', port: workerParentPort };
-
-    worker.postMessage(portMessage, [workerParentPort]);
-
-    workerPort.on('message', ({ id }: IMessages['readyMessage']) => {
-      if (id !== 'ready') { return; }
-
-      workerPort.off('message', done);
-
-      debug('Component ready');
-
-      done();
-    });
-  });
-
-  const component = <IComponent<E>> (async (mediator) => {
-    component.disconnect = async () => {
-      /** Make sure after time, terminate */
-      const timedExecution = delay(500).then(() => {
-        workerPort.close();
-        workerParentPort.close();
-
-        worker.terminate();
+    const isReady = new Promise(async (done) => {
+      await new Promise((isOnline) => {
+        worker.once('online', isOnline);
       });
 
-      /** Ask the worker to commit soduku */
-      await new Promise((r) => {
-        workerPort.postMessage({ id: 'kill' });
-        workerPort.on('close', r);
+      debug('Worker online');
+      debug(`Establishing connection...`);
+
+      const portMessage: IMessages['portMessage'] = { id: 'port', port: workerParentPort };
+
+      worker.postMessage(portMessage, [workerParentPort]);
+
+      workerPort.on('message', ({ id }: IMessages['readyMessage']) => {
+        if (id !== 'ready') { return; }
+
+        workerPort.off('message', done);
+
+        debug('Connection established. Component ready.');
+
+        done();
       });
+    });
 
-      // Just making sure.
-      await timedExecution;
-    };
+    return { isReady, worker, workerPort, workerParentPort };
+  }
 
-    debug('Awaiting component ready...');
-    await isReady;
-    debug('Mediating component...');
+  async function killWorker () {
+    const { workerParentPort, workerPort, worker } = activeWorker;
+
+    debug('Killing worker...');
+
+    /** Make sure after time, terminate */
+    const timedExecution = delay(500).then(() => {
+      workerPort.close();
+      workerParentPort.close();
+
+      return worker.terminate();
+    });
+
+    /** Ask the worker to commit soduku */
+    await new Promise((r) => {
+      workerPort.postMessage({ id: 'kill' });
+      workerPort.on('close', r);
+    });
+
+    // Just making sure.
+    await timedExecution;
+  }
+
+  async function connectComponentToWorker (mediator: Mediator<any>) {
+    async function establishConnectionToWorker () {
+      debug('Awaiting component ready...');
+
+      await activeWorker.isReady;
+
+      debug('Mediating component...');
+
+      activeWorker.workerPort.on('message', ({ id, event, payload }: IMessages['publicationMessage']) => {
+        if (id !== 'publication') { return; }
+
+        debug(`Worker 'publication' ${event.name}`);
+
+        mediator.publish(event, payload);
+      });
+    }
 
     eventInput.observations.forEach((event) => {
       mediator.observe(event, (payload) => {
         debug(`Sending observation %o`, event.name);
 
         const message: IMessages['observationMessage'] = { id: 'observation', event, payload };
-
-        workerPort.postMessage(message);
+        activeWorker.workerPort.postMessage(message);
       });
     });
 
-    workerPort.on('message', ({ id, event, payload }: IMessages['publicationMessage']) => {
-      if (id !== 'publication') { return; }
+    mediator.observe(RestartRemoteModuleWorker, async () => {
+      debug('Restarting Remote Module Worker...');
 
-      debug(`Worker 'publication' ${event.name}`);
+      await killWorker();
 
-      mediator.publish(event, payload);
+      /** Sets the new worker config by mutating the reference */
+      activeWorker = createWorker();
+
+      await establishConnectionToWorker();
     });
+  }
 
+  /** This is `let` so that configuration and listeners do not have to be reestablished on restart */
+  let activeWorker = createWorker();
+
+  const component = <IComponent<E>> (async (mediator) => {
+    component.disconnect = () => killWorker();
+
+    connectComponentToWorker(mediator);
   });
 
   component.observations = eventInput.observations;

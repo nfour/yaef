@@ -3,18 +3,12 @@ import * as findUp from 'findup-sync';
 import { get } from 'lodash';
 import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
-import { COMPLETION_CALLBACK_SYMBOL, ComponentMediator, IComponent } from '../';
+import { COMPLETION_CALLBACK_SYMBOL, ComponentMediator, IComponent, RestartRemoteModuleWorker } from '../';
 import { Component } from '../componentry';
 import { createDebug } from '../debug';
 import { IMessages } from './types';
 
 const debug = createDebug(`RemoteModule Worker ${threadId}`);
-
-async function earlyExit (code: number) {
-  await delay(100);
-
-  process.exit(code);
-}
 
 void (async () => {
   debug('Awaiting port...');
@@ -31,9 +25,8 @@ void (async () => {
   parentPort!.close();
 
   const {
-    eventInput,
+    eventInput, tsconfig, plainFunction, reloadOnFileChanges,
     module: { path, member },
-    tsconfig, plainFunction,
   }: IMessages['componentWorkerData'] = workerData;
 
   await configureTsNodeRegister({ tsconfig, fromPath: path });
@@ -41,8 +34,24 @@ void (async () => {
   debug('Port acquired');
   debug(`Importing ${path}:${member} ...`);
 
+  /** This restarts the worker on file changes if configured to do so. */
+  const onFileChange = (() => {
+    if (!reloadOnFileChanges) { return; }
+
+    /** To prevent multiple events */
+    let isBeingRestarted = false;
+
+    return async () => {
+      if (isBeingRestarted) { return; }
+
+      isBeingRestarted = true;
+
+      await mediator.publish(RestartRemoteModuleWorker);
+    };
+  })();
+
   const component = await importComponent({
-    path, member, plainFunction,
+    path, member, plainFunction, onFileChange,
     name: eventInput.name,
   });
 
@@ -89,11 +98,12 @@ void (async () => {
   debug(`Publishing events: ${eventInput.publications.map(({ name }) => name)}`);
 })();
 
-async function importComponent ({ name, path, member, plainFunction }: {
+async function importComponent ({ name, path, member, plainFunction, onFileChange }: {
   name: string;
   path: string;
   member: string;
   plainFunction?: IMessages['componentWorkerData']['plainFunction'];
+  onFileChange?: (events: any[]) => void
 }): Promise<IComponent<any>> {
   async function getImport () {
     try {
@@ -103,6 +113,15 @@ async function importComponent ({ name, path, member, plainFunction }: {
       if (!moduleMember) {
         debug(`Failure to import member %o from %o`, member, path);
         return earlyExit(1);
+      }
+
+      if (onFileChange) {
+        const { default: nsfw } = await import('nsfw');
+
+        const loadedFiles = Object.keys(require.cache);
+        loadedFiles.forEach(() => {
+          nsfw(path, onFileChange, { debounceMS: 500 });
+        });
       }
 
       return moduleMember;
@@ -190,4 +209,11 @@ async function configureTsNodeRegister ({ tsconfig, fromPath }: {
     : tsconfig as string;
 
   tsNodeRegister({ transpileOnly: true, project });
+}
+
+/** TODO: a more graceful exit would be nice */
+async function earlyExit (code: number) {
+  await delay(100);
+
+  process.exit(code);
 }
