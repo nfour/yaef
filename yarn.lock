@@ -2935,10 +2935,10 @@ nwsapi@^2.0.7:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/nwsapi/-/nwsapi-2.1.1.tgz#08d6d75e69fd791bdea31507ffafe8c843b67e9c"
 
-oao@~1.6.0:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/oao/-/oao-1.6.1.tgz#7cfe548a9ec723cba1e3ea5b591e0a6ea55f7faf"
-  integrity sha512-ovhbDIxYtDSvPsFIuvb4ncRvIP/uP4YP+40M1ZFuNSMwjyePNStSF0y5g8kJo0wphe27Twncwc7mfIzwFo40bg==
+oao@~1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/oao/-/oao-1.7.0.tgz#58e09bedbed131c27970bf38356e2770d058cdce"
+  integrity sha512-zf5BAtfVBs7yzs+lC94tKR70icOXkpVI0rj3oh1N6DuqGree6Hdy0dwrgWcerzcd3X7riGgBSqMM9tfcXJM2vQ==
   dependencies:
     commander "2.19.0"
     execa "0.6.3"
