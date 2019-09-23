@@ -1,5 +1,5 @@
 import Debug from 'debug';
-import * as createUniqueId from 'uniqid';
+import * as createUniqueId from 'shortid';
 
 export const debug = Debug('yaef');
 
