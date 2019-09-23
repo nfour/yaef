@@ -4,13 +4,13 @@ import { MessageChannel, Worker } from 'worker_threads';
 
 import { IComponent, IComponentSignature } from '../';
 import { EventSignature } from '../componentry';
-import { createDebug } from '../debug';
+import * as logging from '../logging';
 import { Mediator } from '../mediation';
 import { IMessages, IRemoteModuleConfig } from './types';
 
 const workerResolverPath = resolve(__dirname, '../../build/remote/workerComponent.js');
 
-const debug = createDebug(`RemoteModule`);
+const debug = logging.debug.extend(`RemoteModule`);
 
 /** Used to define where in a functions parameters a callback should be inserted */
 export const COMPLETION_CALLBACK_SYMBOL = 'YAEF_REMOTE_COMPLETION_CALLBACK_SYMBOL';
@@ -41,8 +41,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
         worker.once('online', isOnline);
       });
 
-      debug('Worker online');
-      debug(`Establishing connection...`);
+      debug('Worker online. Connecting...');
 
       const portMessage: IMessages['portMessage'] = { id: 'port', port: workerParentPort };
 
@@ -52,8 +51,6 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
         if (id !== 'ready') { return; }
 
         workerPort.off('message', done);
-
-        debug('Connection established. Component ready.');
 
         done();
       });
@@ -85,7 +82,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
 
   async function connectComponentToWorker (mediator: Mediator<any>) {
     async function restartWorker () {
-      debug('Restarting Remote Module Worker...');
+      debug('Restarting RemoteModule Worker...');
 
       await killWorker();
 
@@ -96,16 +93,12 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
     }
 
     async function establishConnectionToWorker () {
-      debug('Awaiting component ready...');
-
       await activeWorker.isReady;
-
-      debug('Mediating component...');
 
       activeWorker.workerPort.on('message', ({ id, event, payload }: IMessages['publicationMessage']) => {
         if (id !== 'publication') { return; }
 
-        debug(`Worker 'publication' ${event.name}`);
+        debug(`Worker sent event: ${event.name}`);
 
         /** This event is internal so we handle it outside of the `mediator` */
         if (event.name === RestartRemoteModuleWorker.name) {
@@ -114,11 +107,13 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
 
         mediator.publish(event, payload);
       });
+
+      debug('Connection complete.');
     }
 
     eventInput.observations.forEach((event) => {
       mediator.observe(event, (payload) => {
-        debug(`Sending observation %o`, event.name);
+        debug(`Sending event to worker: %o`, event.name);
 
         const message: IMessages['observationMessage'] = { id: 'observation', event, payload };
 
@@ -126,7 +121,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
       });
     });
 
-    establishConnectionToWorker();
+    await establishConnectionToWorker();
   }
 
   /** This is `let` so that configuration and listeners do not have to be reestablished on restart */
@@ -135,7 +130,7 @@ export function RemoteModuleComponent<E extends IComponentSignature> (
   const component = <IComponent<E>> (async (mediator) => {
     component.disconnect = () => killWorker();
 
-    connectComponentToWorker(mediator);
+    return connectComponentToWorker(mediator);
   });
 
   component.observations = eventInput.observations;

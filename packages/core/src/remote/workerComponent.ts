@@ -5,10 +5,10 @@ import { MessagePort, parentPort, threadId, workerData } from 'worker_threads';
 
 import { COMPLETION_CALLBACK_SYMBOL, ComponentMediator, IComponent, RestartRemoteModuleWorker } from '../';
 import { Component } from '../componentry';
-import { createDebug } from '../debug';
+import * as logging from '../logging';
 import { IMessages } from './types';
 
-const debug = createDebug(`RemoteModule Worker ${threadId}`);
+const debug = logging.debug.extend(`RemoteModuleWorker[${threadId}]`);
 
 void (async () => {
   debug('Awaiting port...');

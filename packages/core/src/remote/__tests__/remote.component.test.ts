@@ -13,8 +13,6 @@ const bananaMember: IValidMembers = 'banana';
 
 jest.setTimeout(15000);
 
-const initialDebugLevel = process.env.DEBUG;
-
 describe('Running components in a worker process', () => {
   /** Used to clean up after tests */
   const containers: Array<ReturnType<typeof ComponentMediator>> = [];
@@ -23,8 +21,6 @@ describe('Running components in a worker process', () => {
     for (const c of containers) { await c.disconnect(); }
 
     containers.splice(0, containers.length); // Empty
-
-    process.env.DEBUG = initialDebugLevel;
   });
 
   test('This tests lifecycle works with regular components', async () => {
@@ -41,22 +37,22 @@ describe('Running components in a worker process', () => {
     expect(eventCCalled).toBeCalledTimes(1);
   });
 
-  test('Can send and receive remote events (banana test case)', async () => {
+  test('Can send and receive remote events', async () => {
     const { mediator } = await prepareRemoteBananaCase();
 
     const eventCCalled = jest.fn();
 
-    mediator.observe(C, eventCCalled);
-    mediator.publish(A);
+    const waitFor = EventAwaiter(mediator);
 
-    await delay(100);
+    const waitingForC = waitFor(C);
+    await mediator.publish(A);
 
-    expect(eventCCalled).toBeCalledTimes(1);
+    const result = await waitingForC;
+
+    expect(result).toMatchObject(C);
   });
 
   test('Can send many events to and from a remote component', async () => {
-    process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
-
     const { mediator } = await prepareRemoteBananaCase();
 
     const eventCCalled = jest.fn();
@@ -75,8 +71,6 @@ describe('Running components in a worker process', () => {
   });
 
   test('Can spawn many remote components and exchange many events', async () => {
-    // process.env.DEBUG = undefined; // Disable debug because the messages are too frequent
-
     const spawnSize = 5;
     const start = Date.now();
     const bananas = Array(spawnSize).fill('').map(() => {
@@ -151,8 +145,6 @@ describe('Running components in a worker process', () => {
 
     const response = await waitFor(ResponseEvent);
 
-    await delay(100);
-
     expect(response).toMatchObject({
       _eventId: 'foobar',
       result: { statusCode: 999, body: { foo: 1 } },
@@ -172,6 +164,6 @@ describe('Running components in a worker process', () => {
 
     const mediator = await container.connect();
 
-    return { mediator, container, remoteBananaComponent };
+    return { ...container, remoteBananaComponent };
   }
 });

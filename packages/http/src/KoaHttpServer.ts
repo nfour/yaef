@@ -1,4 +1,4 @@
-import { Component, ComponentSignature, createDebug, createUniqueId, EventAwaiter, EventSignature } from '@yaef/core';
+import { Component, ComponentSignature, EventAwaiter, EventSignature, logging } from '@yaef/core';
 import * as Koa from 'koa';
 import * as BodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
@@ -37,7 +37,7 @@ export function KoaHttpServer ({ host, port, timeout = 60000 }: {
   /** In `ms`, duration to wait before timing out a request */
   timeout?: number;
 }) {
-  const debug = createDebug('yaef', 'KoaHttpServer', createUniqueId());
+  const debug = logging.debug.extend(`KoaHttpServer[${logging.shortId()}]`);
 
   const router = new Router();
   const koa = new Koa()

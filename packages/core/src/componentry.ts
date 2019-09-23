@@ -1,7 +1,7 @@
 import { map } from 'bluebird';
 
 import { IEventSignature, IEventSignatures, Omit } from './';
-import { createDebug, createUniqueId } from './debug';
+import * as logging from './logging';
 import { Mediator } from './mediation';
 
 export function Component<
@@ -10,7 +10,7 @@ export function Component<
   input: E,
   callback: (mediator: Mediator<EventTuplesToUnion<E>>) => void,
 ): IComponent<E> {
-  const debug = createDebug('Component', createUniqueId());
+  const debug = logging.debug.extend(`Component[${logging.shortId()}]`);
 
   const component = <IComponent<E>> ((mediator) => callback(mediator));
 
@@ -35,7 +35,7 @@ export function ComponentMediator<
   C extends IComponent<any>,
   M extends Mediator<any> = Mediator<any>
 > ({ components, mediator = new Mediator() as any }: { components: C[], mediator?: M }) {
-  const debug = createDebug(`ComponentMediator`, createUniqueId());
+  const debug = logging.debug.extend(`ComponentMediator[${logging.shortId()}]`);
 
   debug(`New with components: %o`, components.map(({ name }) => name));
 

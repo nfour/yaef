@@ -1,8 +1,8 @@
 import { reduce } from 'bluebird';
 
 import { IEventShapes, IEventSignatures, Omit } from './';
-import { createDebug, createUniqueId } from './debug';
 import { ErrorFromCallPoint } from './lib';
+import * as logging from './logging';
 
 /** FIXME: This feels shit */
 const primitiveNames = ['Object', 'Array', 'String', 'Number'];
@@ -25,11 +25,11 @@ export class Mediator<Events extends IEventSignatures> implements IMediator<Even
 
   observers: IMediator<Events>['observers'] = new Map();
 
-  protected debug: ReturnType<typeof createDebug>;
+  protected debug: typeof logging.debug;
   protected validateEventNames: ReturnType<typeof ValidateMediatorEventName>;
 
   constructor () {
-    this.debug = createDebug(this.constructor.name, createUniqueId());
+    this.debug = logging.debug.extend(`${this.constructor.name}[${logging.shortId()}]`);
     this.validateEventNames = ValidateMediatorEventName(this.constructor.name);
 
     this.debug('New');
