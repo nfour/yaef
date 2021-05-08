@@ -15,7 +15,7 @@
     "bluebird": "^3.5.5",
     "filewatcher": "^3.0.1",
     "findup-sync": "^4.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "debug": "^4.1.1",
     "shortid": "^2.2.15",
     "supports-color": "^6.1.0"
