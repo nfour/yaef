@@ -17,7 +17,7 @@
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
-    "qs": "^6.7.0",
+    "qs": "^6.7.3",
     "uuid": "~3.3.2"
   },
   "devDependencies": {
